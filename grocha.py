@@ -115,7 +115,7 @@ class GrochaGuild:
                         async for m in channel.history(limit = 100, after = after, oldest_first = False):
                             if m.author != self.user:
                                 for e in emojis:
-                                    e["score"] += len(list(filter(lambda r : r.emoji == e["emoji"], m.reactions))) + m.content.count(e["string"])
+                                    e["score"] += sum(map(lambda r : r.count, filter(lambda r : r.emoji == e["emoji"], m.reactions))) + m.content.count(e["string"])
 
                     # Sort emojis from most to least used
                     emojis = sorted(emojis, key = lambda e : -e["score"])
