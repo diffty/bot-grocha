@@ -12,14 +12,17 @@ class GrochaGuild:
         self.server = guild
         self.greet_messages_in_wait = {}
         self.kick_messages_in_wait = {}
-        self.chan_welcome = self.server.get_channel(config.WELCOME_CHANNEL_ID)
-        self.chan_main = self.server.get_channel(config.MAIN_CHANNEL_ID)
+        self.chan_welcome = self.get_channel_by_name(config.WELCOME_CHANNEL_NAME)
+        self.chan_main = self.get_channel_by_name(config.MAIN_CHANNEL_NAME)
         self.role_main = self.search_for_main_role(config.MAIN_ROLE_NAME)
 
         if not self.role_main:
             raise Exception(f"<!!> Can't find role named {config.MAIN_ROLE_NAME}")
 
         self.grant_emoji = self.search_for_emoji(config.GRANT_EMOJI_NAME)
+
+    def get_channel_by_name(self, channel_name):
+        return discord.utils.get(self.server.channels, name = channel_name)
 
     def search_for_main_role(self, role_name):
         for role in self.server.roles:
