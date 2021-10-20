@@ -14,25 +14,21 @@ class GrochaGuild:
         self.kick_messages_in_wait = {}
         self.chan_welcome = self.get_channel_by_name(config.WELCOME_CHANNEL_NAME)
         self.chan_main = self.get_channel_by_name(config.MAIN_CHANNEL_NAME)
-        self.role_main = self.search_for_main_role(config.MAIN_ROLE_NAME)
+        self.role_main = self.get_role_by_name(config.MAIN_ROLE_NAME)
 
         if not self.role_main:
             raise Exception(f"<!!> Can't find role named {config.MAIN_ROLE_NAME}")
 
-        self.grant_emoji = self.search_for_emoji(config.GRANT_EMOJI_NAME)
+        self.grant_emoji = self.get_emoji_by_name(config.GRANT_EMOJI_NAME)
 
     def get_channel_by_name(self, channel_name):
         return discord.utils.get(self.server.channels, name = channel_name)
 
-    def search_for_main_role(self, role_name):
-        for role in self.server.roles:
-            if role.name == role_name:
-                return role
+    def get_role_by_name(self, role_name):
+        return discord.utils.get(self.server.roles, name = role_name)
 
-    def search_for_emoji(self, emoji_name):
-        for emoji in self.server.emojis:
-            if emoji.name == emoji_name:
-                return emoji
+    def get_emoji_by_name(self, emoji_name):
+        return discord.utils.get(self.server.emojis, name = emoji_name)
 
     def emoji_to_string(self, emoji):
         return f'<:{emoji.name}:{str(emoji.id)}>'
