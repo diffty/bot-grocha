@@ -5,48 +5,39 @@ import discord
 
 import config
 
-
-class GrochaBot(discord.Client):
-    def __init__(self):
-        intents = discord.Intents.default()
-        intents.members = True
-        intents.reactions = True
-        intents.presences = True
-
-        discord.Client.__init__(self, intents=intents)
-
+class GrochaGuild:
+    def __init__(self, bot, guild):
+        self.bot = bot
+        self.user = self.bot.user
+        self.server = guild
         self.greet_messages_in_wait = {}
         self.kick_messages_in_wait = {}
-    
-    def search_for_main_role(self, role_name):
-        for role in self.server.roles:
-            if role.name == role_name:
-                return role
-
-    def search_for_emoji(self, emoji_name):
-        for emoji in self.server.emojis:
-            if emoji.name == emoji_name:
-                return emoji
-
-    async def on_ready(self):
-        print("MAOU?")
-        sys.stdout.flush()
-
-        self.server = self.get_guild(config.GUILD_ID)
-        self.chan_welcome = self.server.get_channel(config.WELCOME_CHANNEL_ID)
-        self.chan_main = self.server.get_channel(config.MAIN_CHANNEL_ID)
-        self.role_main = self.search_for_main_role(config.MAIN_ROLE_NAME)
+        self.chan_welcome = self.get_channel_by_name(config.WELCOME_CHANNEL_NAME)
+        self.chan_main = self.get_channel_by_name(config.MAIN_CHANNEL_NAME)
+        self.role_main = self.get_role_by_name(config.MAIN_ROLE_NAME)
 
         if not self.role_main:
             raise Exception(f"<!!> Can't find role named {config.MAIN_ROLE_NAME}")
 
-        self.grant_emoji = self.search_for_emoji(config.GRANT_EMOJI_NAME)
+        self.grant_emoji = self.get_emoji_by_name(config.GRANT_EMOJI_NAME)
 
-        if not self.grant_emoji:
-            raise Exception(f"<!!> Can't find emoji named {config.GRANT_EMOJI_NAME}")
+    def get_channel_by_name(self, channel_name):
+        return discord.utils.get(self.server.channels, name = channel_name)
+
+    def get_role_by_name(self, role_name):
+        return discord.utils.get(self.server.roles, name = role_name)
+
+    def get_emoji_by_name(self, emoji_name):
+        return discord.utils.get(self.server.emojis, name = emoji_name)
+
+    def emoji_to_string(self, emoji):
+        return f'<:{emoji.name}:{str(emoji.id)}>'
+
+    def get_text_channels(self):
+        return list(filter(lambda c : isinstance(c, discord.channel.TextChannel), self.server.channels))
 
     async def on_member_join(self, member):
-        message = await self.chan_main.send(f"MAOU! **{member.name}** vient d'arriver sur le serveur.\nRéagis à ce message avec l'emoji <:{self.grant_emoji.name}:{self.grant_emoji.id}> pour lui donner les droits!")
+        message = await self.chan_main.send(f"MAOU! **{member.name}** vient d'arriver sur le serveur.\nRéagis à ce message avec l'emoji {self.emoji_to_string(self.grant_emoji)} pour lui donner les droits!")
         self.greet_messages_in_wait[message.id] = member
 
     async def on_reaction_add(self, reaction, user):
@@ -91,22 +82,73 @@ class GrochaBot(discord.Client):
 
     async def on_message(self, message):
         if self.user.mentioned_in(message):
-            if "kick" in message.content.split():
+            message_split = message.content.split()
+            if "kick" in message_split:
                 members = list(filter(lambda u: u != self.user, message.mentions))
                 if members:
-                    message = await self.chan_main.send(f"MAOU! **{', '.join(list(map(lambda m: m.name, members)))}** est sur le point d'être kické.\nRéagissez à ce message avec au moins 3 emojis <:{self.grant_emoji.name}:{self.grant_emoji.id}> pour valider la décision!")
+                    message = await self.chan_main.send(f"MAOU! **{', '.join(list(map(lambda m: m.name, members)))}** est sur le point d'être kické.\nRéagissez à ce message avec au moins 3 emojis {self.emoji_to_string(self.grant_emoji)} pour valider la décision!")
                     self.kick_messages_in_wait[message.id] = members
 
-            if "lick" in message.content.split():
+            if "lick" in message_split:
                 members = list(filter(lambda u: u != self.user, message.mentions))
                 if not members:
                     members = [message.author]
 
                 message = await message.channel.send(f"<:lick:784211260732473376> **{' <:lick:784211260732473376> '.join(list(map(lambda m: m.name, members)))}** <:lick:784211260732473376>")
 
+            if "emojis" in message_split:
+                emojis = list(map(lambda e : {"emoji": e}, self.server.emojis))
+                for e in emojis:
+                    if "here" in message_split:
+                        text_channels = [message.channel]
+                    else:
+                        text_channels = self.get_text_channels()
+
+                    score = 0
+                    emoji_string = self.emoji_to_string(e["emoji"])
+                    for channel in text_channels:
+                        for m in await channel.history(limit = 100).flatten():
+                            if m.author != self.user:
+                                score += len(list(filter(lambda r : r.emoji == e["emoji"], m.reactions)))
+                                score += m.content.count(emoji_string)
+                    e["score"] = score
+
+                # Sort emojis from most to least used
+                emojis = sorted(emojis, key = lambda e : -e["score"])
+
+                await message.channel.send("Emojis :\n" + "\n".join(list(map(lambda e : f'{self.emoji_to_string(e["emoji"])}: {str(e["score"])}', emojis))))
+
             else:
                 await message.channel.send("MAOU?")
 
+class GrochaBot(discord.Client):
+    def __init__(self):
+        intents = discord.Intents.default()
+        intents.members = True
+        intents.reactions = True
+        intents.presences = True
+
+        discord.Client.__init__(self, intents=intents)
+
+        self.guild_clients = {}
+
+    def get_guild_client(self, guild_id):
+        if not guild_id in self.guild_clients.keys():
+            self.guild_clients[guild_id] = GrochaGuild(self, self.get_guild(guild_id))
+        return self.guild_clients[guild_id]
+
+    async def on_ready(self):
+        print("MAOU?")
+        sys.stdout.flush()
+
+    async def on_member_join(self, member):
+        await self.get_guild_client(member.guild.id).on_member_join(member)
+
+    async def on_reaction_add(self, reaction, user):
+        await self.get_guild_client(user.guild.id).on_reaction_add(reaction, user)
+
+    async def on_message(self, message):
+        await self.get_guild_client(message.guild.id).on_message(message)
 
 client = GrochaBot()
 client.run(config.BOT_TOKEN)
