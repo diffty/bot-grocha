@@ -31,8 +31,11 @@ class GrochaGuild:
             if emoji.name == emoji_name:
                 return emoji
 
+    def emoji_to_string(self, emoji):
+        return f'<:{emoji.name}:{str(emoji.id)}>'
+
     async def on_member_join(self, member):
-        message = await self.chan_main.send(f"MAOU! **{member.name}** vient d'arriver sur le serveur.\nRéagis à ce message avec l'emoji <:{self.grant_emoji.name}:{self.grant_emoji.id}> pour lui donner les droits!")
+        message = await self.chan_main.send(f"MAOU! **{member.name}** vient d'arriver sur le serveur.\nRéagis à ce message avec l'emoji {self.emoji_to_string(self.grant_emoji)} pour lui donner les droits!")
         self.greet_messages_in_wait[message.id] = member
 
     async def on_reaction_add(self, reaction, user):
@@ -80,7 +83,7 @@ class GrochaGuild:
             if "kick" in message.content.split():
                 members = list(filter(lambda u: u != self.user, message.mentions))
                 if members:
-                    message = await self.chan_main.send(f"MAOU! **{', '.join(list(map(lambda m: m.name, members)))}** est sur le point d'être kické.\nRéagissez à ce message avec au moins 3 emojis <:{self.grant_emoji.name}:{self.grant_emoji.id}> pour valider la décision!")
+                    message = await self.chan_main.send(f"MAOU! **{', '.join(list(map(lambda m: m.name, members)))}** est sur le point d'être kické.\nRéagissez à ce message avec au moins 3 emojis {self.emoji_to_string(self.grant_emoji)} pour valider la décision!")
                     self.kick_messages_in_wait[message.id] = members
 
             if "lick" in message.content.split():
