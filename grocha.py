@@ -122,7 +122,11 @@ class GrochaGuild:
 
                     # Put emojis with their scores into strings
                     emojis = list(map(lambda e : f'{self.emoji_to_string(e["emoji"])}`{str(e["score"]).zfill(3)}`', emojis))
-                    await response.edit(content = "Emojis :\n" + " ".join(emojis))
+
+                    # Join into a single string
+                    emojis = "Emojis :\n" + "".join(emojis)
+
+                    await response.edit(content = emojis[:2000])
 
                 elif "hurt" in message_split:
                     raise Exception("*grocha vient de chier une ogive, tape un sprint et se prend une porte*")
