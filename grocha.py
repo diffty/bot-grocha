@@ -79,13 +79,14 @@ class GrochaGuild:
 
     async def on_message(self, message):
         if self.user.mentioned_in(message):
-            if "kick" in message.content.split():
+            message_split = message.content.split()
+            if "kick" in message_split:
                 members = list(filter(lambda u: u != self.user, message.mentions))
                 if members:
                     message = await self.chan_main.send(f"MAOU! **{', '.join(list(map(lambda m: m.name, members)))}** est sur le point d'être kické.\nRéagissez à ce message avec au moins 3 emojis {self.emoji_to_string(self.grant_emoji)} pour valider la décision!")
                     self.kick_messages_in_wait[message.id] = members
 
-            if "lick" in message.content.split():
+            if "lick" in message_split:
                 members = list(filter(lambda u: u != self.user, message.mentions))
                 if not members:
                     members = [message.author]
