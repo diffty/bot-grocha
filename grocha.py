@@ -128,8 +128,8 @@ class GrochaGuild:
                     raise Exception("*grocha vient de chier une ogive, tape un sprint et se prend une porte*")
 
                 elif "version" in message_split:
-                    sha1 = subprocess.run('git rev-parse HEAD', capture_output=True, text=True).stdout.strip()
-                    date = subprocess.run('git log -1 --format=%cd', capture_output=True, text=True).stdout.strip()
+                    sha1 = subprocess.run(['git', 'rev-parse', 'HEAD'], capture_output=True, text=True).stdout.strip()
+                    date = subprocess.run(['git', 'log', '-1', '--format=%cd'], capture_output=True, text=True).stdout.strip()
                     await message.channel.send(f'MAOU :date:\nSha1: `{sha1}`\nDate: `{date}`')
 
                 else:
