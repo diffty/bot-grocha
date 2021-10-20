@@ -101,7 +101,7 @@ class GrochaGuild:
                     message = await message.channel.send(f"<:lick:784211260732473376> **{' <:lick:784211260732473376> '.join(list(map(lambda m: m.name, members)))}** <:lick:784211260732473376>")
 
                 elif "emojis" in message_split:
-                    response = message.channel.send('MAOU <:brain:900421793934880808>\n_(je réfléchis...)_')
+                    response = await message.channel.send('MAOU <:brain:900421793934880808>\n_(je réfléchis...)_')
                     emojis = list(map(lambda e : {"emoji": e}, self.server.emojis))
                     for e in emojis:
                         if "here" in message_split:
