@@ -102,7 +102,7 @@ class GrochaGuild:
 
                 elif "emojis" in message_split:
                     response = await message.channel.send('MAOU <:brain:900421793934880808>\n_(je réfléchis...)_')
-                    emojis = list(map(lambda e : {"emoji": e, "score": 0}, self.server.emojis))
+                    emojis = list(map(lambda e : {"emoji": e, "score": 0, "string": self.emoji_to_string(e)}, self.server.emojis))
                     if "here" in message_split:
                         channels = [message.channel]
                     else:
@@ -113,8 +113,7 @@ class GrochaGuild:
                         async for m in channel.history(limit = 100, after = after, oldest_first = False):
                             if m.author != self.user:
                                 for e in emojis:
-                                    emoji_string = self.emoji_to_string(e["emoji"])
-                                    e["score"] += len(list(filter(lambda r : r.emoji == e["emoji"], m.reactions))) + m.content.count(emoji_string)
+                                    e["score"] += len(list(filter(lambda r : r.emoji == e["emoji"], m.reactions))) + m.content.count(e["string"])
 
                     # Sort emojis from most to least used
                     emojis = sorted(emojis, key = lambda e : -e["score"])
