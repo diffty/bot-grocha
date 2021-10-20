@@ -89,14 +89,15 @@ class GrochaGuild:
                     message = await self.chan_main.send(f"MAOU! **{', '.join(list(map(lambda m: m.name, members)))}** est sur le point d'être kické.\nRéagissez à ce message avec au moins 3 emojis {self.emoji_to_string(self.grant_emoji)} pour valider la décision!")
                     self.kick_messages_in_wait[message.id] = members
 
-            if "lick" in message_split:
+            elif "lick" in message_split:
                 members = list(filter(lambda u: u != self.user, message.mentions))
                 if not members:
                     members = [message.author]
 
                 message = await message.channel.send(f"<:lick:784211260732473376> **{' <:lick:784211260732473376> '.join(list(map(lambda m: m.name, members)))}** <:lick:784211260732473376>")
 
-            if "emojis" in message_split:
+            elif "emojis" in message_split:
+                response = await message.channel.send("Emojis: please wait...");
                 emojis = list(map(lambda e : {"emoji": e}, self.server.emojis))
                 for e in emojis:
                     if "here" in message_split:
@@ -116,7 +117,7 @@ class GrochaGuild:
                 # Sort emojis from most to least used
                 emojis = sorted(emojis, key = lambda e : -e["score"])
 
-                await message.channel.send("Emojis :\n" + "\n".join(list(map(lambda e : f'{self.emoji_to_string(e["emoji"])}: {str(e["score"])}', emojis))))
+                await response.edit(content = "Emojis :\n" + "\n".join(list(map(lambda e : f'{self.emoji_to_string(e["emoji"])}: {str(e["score"])}', emojis))))
 
             else:
                 await message.channel.send("MAOU?")
