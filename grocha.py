@@ -81,7 +81,7 @@ class GrochaGuild:
                         await self.server.kick(m, reason=f"Utilisateur kické par {', '.join(users_emoji)} & Grocha le {(datetime.datetime.now() + datetime.timedelta(1)).strftime('%Y-%m-%d %H:%M:%S')}")
                     del self.kick_messages_in_wait[message.id]
                 except Exception as e:
-                    print("<!!> Error while kicking members : " + str(e))
+                    await self.deal_with_exception(e, message.channel)
 
     async def on_message(self, message):
         try:
@@ -129,14 +129,24 @@ class GrochaGuild:
                     await message.channel.send("MAOU?")
 
         except Exception as e:
-            await message.channel.send('MAOUUUUU :(\n_(je suis cassé! Regarde #mongrocha pour plus d\'infos sur le problème)_')
-            tb = sys.exc_info()[2]
-            exception_str = "\n".join(traceback.format_exception(e, value=e, tb=tb))
-            await self.chan_debug.send(f'_Le bobo de Grocha :_\n```{exception_str}```')
+            await self.deal_with_exception(e, message.channel)
 
         sys.stderr.flush()
         sys.stdout.flush()
 
+    async def deal_with_exception(self, e, channel):
+        # Allow a debugger to catch the exception if it's watching
+        if not sys.gettrace() is None:
+            raise e
+
+        # Warn the original channel about the problem
+        if channel:
+            await channel.send(f"MAOUUUUU :frowning:\n_(je suis cassé! Regarde #{self.chan_debug.name} pour plus d'infos sur le problème)_")
+
+        # Send callstack to debug channel
+        tb = sys.exc_info()[2]
+        exception_str = "\n".join(traceback.format_exception(e, value=e, tb=tb))
+        await self.chan_debug.send(f'_Le bobo de Grocha :_\n```{exception_str}```')
 
 class GrochaBot(discord.Client):
     def __init__(self):
