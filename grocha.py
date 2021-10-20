@@ -99,7 +99,8 @@ class GrochaGuild:
                     if not members:
                         members = [message.author]
 
-                    message = await message.channel.send(f"<:lick:784211260732473376> **{' <:lick:784211260732473376> '.join(list(map(lambda m: m.name, members)))}** <:lick:784211260732473376>")
+                    lick = self.emoji_to_string(self.get_emoji_by_name('lick'))
+                    message = await message.channel.send(f"{lick} **{f' {lick} '.join(list(map(lambda m: m.name, members)))}** {lick}")
 
                 elif "emojis" in message_split:
                     response = await message.channel.send('MAOU :brain:\n_(je réfléchis...)_')
