@@ -33,6 +33,9 @@ class GrochaGuild:
     def emoji_to_string(self, emoji):
         return f'<:{emoji.name}:{str(emoji.id)}>'
 
+    def get_text_channels(self):
+        return list(filter(lambda c : isinstance(c, discord.channel.TextChannel), self.server.channels))
+
     async def on_member_join(self, member):
         message = await self.chan_main.send(f"MAOU! **{member.name}** vient d'arriver sur le serveur.\nRéagis à ce message avec l'emoji {self.emoji_to_string(self.grant_emoji)} pour lui donner les droits!")
         self.greet_messages_in_wait[message.id] = member
@@ -92,6 +95,28 @@ class GrochaGuild:
                     members = [message.author]
 
                 message = await message.channel.send(f"<:lick:784211260732473376> **{' <:lick:784211260732473376> '.join(list(map(lambda m: m.name, members)))}** <:lick:784211260732473376>")
+
+            if "emojis" in message_split:
+                emojis = list(map(lambda e : {"emoji": e}, self.server.emojis))
+                for e in emojis:
+                    if "here" in message_split:
+                        text_channels = [message.channel]
+                    else:
+                        text_channels = self.get_text_channels()
+
+                    score = 0
+                    emoji_string = self.emoji_to_string(e["emoji"])
+                    for channel in text_channels:
+                        for m in await channel.history(limit = 100).flatten():
+                            if m.author != self.user:
+                                score += len(list(filter(lambda r : r.emoji == e["emoji"], m.reactions)))
+                                score += m.content.count(emoji_string)
+                    e["score"] = score
+
+                # Sort emojis from most to least used
+                emojis = sorted(emojis, key = lambda e : -e["score"])
+
+                await message.channel.send("Emojis :\n" + "\n".join(list(map(lambda e : f'{self.emoji_to_string(e["emoji"])}: {str(e["score"])}', emojis))))
 
             else:
                 await message.channel.send("MAOU?")
