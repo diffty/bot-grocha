@@ -106,9 +106,10 @@ class GrochaGuild:
                         text_channels = self.get_text_channels()
 
                     score = 0
+                    after = datetime.datetime.now() - datetime.timedelta(days = 180)
                     emoji_string = self.emoji_to_string(e["emoji"])
                     for channel in text_channels:
-                        for m in await channel.history(limit = 100).flatten():
+                        async for m in channel.history(limit = 100, after = after, oldest_first = False):
                             if m.author != self.user:
                                 score += len(list(filter(lambda r : r.emoji == e["emoji"], m.reactions)))
                                 score += m.content.count(emoji_string)
