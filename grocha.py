@@ -40,6 +40,14 @@ class GrochaGuild:
     def get_text_channels(self):
         return list(filter(lambda c : isinstance(c, discord.channel.TextChannel), self.server.channels))
 
+    async def on_ready(self):
+        print(f"Connected on Discord server {self.server}")
+        sys.stdout.flush()
+        sys.stderr.flush()
+
+        if self.chan_debug:
+            await self.chan_debug.send(f'MAOOWWWWWW _(I just awakened)_')
+
     async def on_member_join(self, member):
         message = await self.chan_main.send(f"MAOU! **{member.name}** vient d'arriver sur le serveur.\nRéagis à ce message avec l'emoji {self.emoji_to_string(self.grant_emoji)} pour lui donner les droits!")
         self.greet_messages_in_wait[message.id] = member
@@ -137,9 +145,12 @@ class GrochaGuild:
                     await message.channel.send(f'MAOU :date:\nSha1: `{sha1}`\nDate: `{date}`')
 
                 elif "update" in message_split:
-                    rebase_process = subprocess.run(['git', 'pull', '--rebase'], capture_output=True, text=True)
-                    rebase_results = rebase_process.stderr.strip()
+                    rebase_results = subprocess.run(['git', 'pull', '--rebase'], capture_output=True, text=True).stderr.strip()
                     await message.channel.send(f'MAOU! _(updating myself!)_\n**Results**\n```{rebase_results}```')
+
+                elif "restart" in message_split:
+                    await message.channel.send(f'MAOU~ _(takin a short nap bruh)_')
+                    restart_results = subprocess.run(['systemctl', '--user', 'restart', 'bot-grocha'], capture_output=True, text=True).stderr.strip()
 
                 else:
                     await message.channel.send("MAOU?")
@@ -164,6 +175,7 @@ class GrochaGuild:
         exception_str = "\n".join(traceback.format_exception(e, value=e, tb=tb))
         await self.chan_debug.send(f'_Le bobo de Grocha :_\n```{exception_str}```')
 
+
 class GrochaBot(discord.Client):
     def __init__(self):
         intents = discord.Intents.default()
@@ -181,8 +193,8 @@ class GrochaBot(discord.Client):
         return self.guild_clients[guild_id]
 
     async def on_ready(self):
-        print("MAOU?")
-        sys.stdout.flush()
+        for guild in self.guilds:
+            await self.get_guild_client(guild.id).on_ready()
 
     async def on_member_join(self, member):
         await self.get_guild_client(member.guild.id).on_member_join(member)
