@@ -1,9 +1,11 @@
 import sys
+import traceback
 import datetime
 
 import discord
 
 import config
+
 
 class GrochaGuild:
     def __init__(self, bot, guild):
@@ -14,6 +16,7 @@ class GrochaGuild:
         self.kick_messages_in_wait = {}
         self.chan_welcome = self.get_channel_by_name(config.WELCOME_CHANNEL_NAME)
         self.chan_main = self.get_channel_by_name(config.MAIN_CHANNEL_NAME)
+        self.chan_debug = self.get_channel_by_name(config.DEBUG_CHANNEL_NAME)
         self.role_main = self.get_role_by_name(config.MAIN_ROLE_NAME)
 
         if not self.role_main:
@@ -81,47 +84,61 @@ class GrochaGuild:
                     print("<!!> Error while kicking members : " + str(e))
 
     async def on_message(self, message):
-        if self.user.mentioned_in(message):
-            message_split = message.content.split()
-            if "kick" in message_split:
-                members = list(filter(lambda u: u != self.user, message.mentions))
-                if members:
-                    message = await self.chan_main.send(f"MAOU! **{', '.join(list(map(lambda m: m.name, members)))}** est sur le point d'être kické.\nRéagissez à ce message avec au moins 3 emojis {self.emoji_to_string(self.grant_emoji)} pour valider la décision!")
-                    self.kick_messages_in_wait[message.id] = members
+        try:
+            if self.user.mentioned_in(message):
+                message_split = message.content.split()
+                if "kick" in message_split:
+                    members = list(filter(lambda u: u != self.user, message.mentions))
+                    if members:
+                        message = await self.chan_main.send(f"MAOU! **{', '.join(list(map(lambda m: m.name, members)))}** est sur le point d'être kické.\nRéagissez à ce message avec au moins 3 emojis {self.emoji_to_string(self.grant_emoji)} pour valider la décision!")
+                        self.kick_messages_in_wait[message.id] = members
 
-            elif "lick" in message_split:
-                members = list(filter(lambda u: u != self.user, message.mentions))
-                if not members:
-                    members = [message.author]
+                elif "lick" in message_split:
+                    members = list(filter(lambda u: u != self.user, message.mentions))
+                    if not members:
+                        members = [message.author]
 
-                message = await message.channel.send(f"<:lick:784211260732473376> **{' <:lick:784211260732473376> '.join(list(map(lambda m: m.name, members)))}** <:lick:784211260732473376>")
+                    message = await message.channel.send(f"<:lick:784211260732473376> **{' <:lick:784211260732473376> '.join(list(map(lambda m: m.name, members)))}** <:lick:784211260732473376>")
 
-            elif "emojis" in message_split:
-                response = await message.channel.send("Emojis: please wait...");
-                emojis = list(map(lambda e : {"emoji": e}, self.server.emojis))
-                for e in emojis:
-                    if "here" in message_split:
-                        text_channels = [message.channel]
-                    else:
-                        text_channels = self.get_text_channels()
+                elif "emojis" in message_split:
+                    response = message.channel.send('MAOU <:brain:900421793934880808>\n_(je réfléchis...)_')
+                    emojis = list(map(lambda e : {"emoji": e}, self.server.emojis))
+                    for e in emojis:
+                        if "here" in message_split:
+                            text_channels = [message.channel]
+                        else:
+                            text_channels = self.get_text_channels()
 
-                    score = 0
-                    after = datetime.datetime.now() - datetime.timedelta(days = 180)
-                    emoji_string = self.emoji_to_string(e["emoji"])
-                    for channel in text_channels:
-                        async for m in channel.history(limit = 100, after = after, oldest_first = False):
-                            if m.author != self.user:
-                                score += len(list(filter(lambda r : r.emoji == e["emoji"], m.reactions)))
-                                score += m.content.count(emoji_string)
-                    e["score"] = score
+                        score = 0
+                        after = datetime.datetime.now() - datetime.timedelta(days = 180)
+                        emoji_string = self.emoji_to_string(e["emoji"])
+                        for channel in text_channels:
+                            async for m in channel.history(limit = 100, after = after, oldest_first = False):
+                                if m.author != self.user:
+                                    score += len(list(filter(lambda r : r.emoji == e["emoji"], m.reactions)))
+                                    score += m.content.count(emoji_string)
+                        e["score"] = score
 
-                # Sort emojis from most to least used
-                emojis = sorted(emojis, key = lambda e : -e["score"])
+                    # Sort emojis from most to least used
+                    emojis = sorted(emojis, key = lambda e : -e["score"])
 
-                await response.edit(content = "Emojis :\n" + "\n".join(list(map(lambda e : f'{self.emoji_to_string(e["emoji"])}: {str(e["score"])}', emojis))))
+                    await response.edit(content = "Emojis :\n" + "\n".join(list(map(lambda e : f'{self.emoji_to_string(e["emoji"])}: {str(e["score"])}', emojis))))
 
-            else:
-                await message.channel.send("MAOU?")
+                elif "hurt" in message_split:
+                    raise Exception("*grocha vient de chier une ogive, tape un sprint et se prend une porte*")
+
+                else:
+                    await message.channel.send("MAOU?")
+
+        except Exception as e:
+            await message.channel.send('MAOUUUUU :(\n_(je suis cassé! Regarde #mongrocha pour plus d\'infos sur le problème)_')
+            tb = sys.exc_info()[2]
+            exception_str = "\n".join(traceback.format_exception(e, value=e, tb=tb))
+            await self.chan_debug.send(f'_Le bobo de Grocha :_\n```{exception_str}```')
+
+        sys.stderr.flush()
+        sys.stdout.flush()
+
 
 class GrochaBot(discord.Client):
     def __init__(self):
