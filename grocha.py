@@ -136,6 +136,11 @@ class GrochaGuild:
                     date = subprocess.run(['git', 'log', '-1', '--format=%cd'], capture_output=True, text=True).stdout.strip()
                     await message.channel.send(f'MAOU :date:\nSha1: `{sha1}`\nDate: `{date}`')
 
+                elif "update" in message_split:
+                    rebase_process = subprocess.run(['git', 'pull', '--rebase'], capture_output=True, text=True)
+                    rebase_results = rebase_process.stderr.strip()
+                    await message.channel.send(f'MAOU! _(updating myself!)_\n**Results**\n```{rebase_results}```')
+
                 else:
                     await message.channel.send("MAOU?")
 
