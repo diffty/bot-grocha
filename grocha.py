@@ -102,27 +102,25 @@ class GrochaGuild:
 
                 elif "emojis" in message_split:
                     response = await message.channel.send('MAOU <:brain:900421793934880808>\n_(je réfléchis...)_')
-                    emojis = list(map(lambda e : {"emoji": e}, self.server.emojis))
-                    for e in emojis:
-                        if "here" in message_split:
-                            text_channels = [message.channel]
-                        else:
-                            text_channels = self.get_text_channels()
+                    emojis = list(map(lambda e : {"emoji": e, "score": 0, "string": self.emoji_to_string(e)}, self.server.emojis))
+                    if "here" in message_split:
+                        channels = [message.channel]
+                    else:
+                        channels = self.get_text_channels()
 
-                        score = 0
-                        after = datetime.datetime.now() - datetime.timedelta(days = 180)
-                        emoji_string = self.emoji_to_string(e["emoji"])
-                        for channel in text_channels:
-                            async for m in channel.history(limit = 100, after = after, oldest_first = False):
-                                if m.author != self.user:
-                                    score += len(list(filter(lambda r : r.emoji == e["emoji"], m.reactions)))
-                                    score += m.content.count(emoji_string)
-                        e["score"] = score
+                    after = datetime.datetime.now() - datetime.timedelta(days = 180)
+                    for channel in channels:
+                        async for m in channel.history(limit = 100, after = after, oldest_first = False):
+                            if m.author != self.user:
+                                for e in emojis:
+                                    e["score"] += len(list(filter(lambda r : r.emoji == e["emoji"], m.reactions))) + m.content.count(e["string"])
 
                     # Sort emojis from most to least used
                     emojis = sorted(emojis, key = lambda e : -e["score"])
 
-                    await response.edit(content = "Emojis :\n" + "\n".join(list(map(lambda e : f'{self.emoji_to_string(e["emoji"])}: {str(e["score"])}', emojis))))
+                    # Put emojis with their scores into strings
+                    emojis = list(map(lambda e : f'{self.emoji_to_string(e["emoji"])}`{str(e["score"]).zfill(3)}`', emojis))
+                    await response.edit(content = "Emojis :\n" + " ".join(emojis))
 
                 elif "hurt" in message_split:
                     raise Exception("*grocha vient de chier une ogive, tape un sprint et se prend une porte*")
