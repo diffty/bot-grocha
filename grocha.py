@@ -122,7 +122,9 @@ class GrochaGuild:
                     # Sort emojis from most to least used
                     emojis = sorted(emojis, key = lambda e : -e["score"])
 
-                    await response.edit(content = "Emojis :\n" + "\n".join(list(map(lambda e : f'{self.emoji_to_string(e["emoji"])}: {str(e["score"])}', emojis))))
+                    # Put emojis with their scores into strings
+                    emojis = list(map(lambda e : f'{self.emoji_to_string(e["emoji"])}`{str(e["score"]).zfill(3)}`', emojis))
+                    await response.edit(content = "Emojis :\n" + " ".join(emojis))
 
                 elif "hurt" in message_split:
                     raise Exception("*grocha vient de chier une ogive, tape un sprint et se prend une porte*")
