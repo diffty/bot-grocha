@@ -118,10 +118,10 @@ class GrochaGuild:
                         sorted_emojis = sorted(emojis, key = lambda e : -e["score"])
 
                         # Put emojis with their scores into strings
-                        sorted_emojis = list(map(lambda e : f'{self.emoji_to_string(e["emoji"])}`{str(e["score"]).zfill(3)}`', sorted_emojis))
+                        sorted_emojis = list(map(lambda e : f'{self.emoji_to_string(e["emoji"])}`{str(e["score"])}`', sorted_emojis))
 
                         # Join into a single string
-                        sorted_emojis = "".join(sorted_emojis)
+                        sorted_emojis = "-".join(sorted_emojis)
 
                         if final:
                             sorted_emojis = "Emojis :\n" + sorted_emojis
