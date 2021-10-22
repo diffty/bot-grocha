@@ -111,8 +111,25 @@ class GrochaGuild:
                     message = await message.channel.send(f"{lick} **{f' {lick} '.join(list(map(lambda m: m.name, members)))}** {lick}")
 
                 elif "emojis" in message_split:
-                    response = await message.channel.send('MAOU :brain:\n_(je réfléchis...)_')
+                    response = await message.channel.send('Emojis...')
                     emojis = list(map(lambda e : {"emoji": e, "score": 0, "string": self.emoji_to_string(e)}, self.server.emojis))
+                    async def update_emojis_response(final = False):
+                        # Sort emojis from most to least used
+                        sorted_emojis = sorted(emojis, key = lambda e : -e["score"])
+
+                        # Put emojis with their scores into strings
+                        sorted_emojis = list(map(lambda e : f'{self.emoji_to_string(e["emoji"])}`{str(e["score"]).zfill(3)}`', sorted_emojis))
+
+                        # Join into a single string
+                        sorted_emojis = "".join(sorted_emojis)
+
+                        if final:
+                            sorted_emojis = "Emojis :\n" + sorted_emojis
+                        else:
+                            sorted_emojis = "Emojis : (calcul en cours)\n" + sorted_emojis
+
+                        await response.edit(content = sorted_emojis[:2000])
+
                     if "here" in message_split:
                         channels = [message.channel]
                     else:
@@ -120,21 +137,13 @@ class GrochaGuild:
 
                     after = datetime.now() - timedelta(days = 180)
                     for channel in channels:
-                        async for m in channel.history(limit = 100, after = after, oldest_first = False):
+                        await update_emojis_response()
+                        async for m in channel.history(limit = 1000, after = after, oldest_first = False):
                             if m.author != self.user:
                                 for e in emojis:
                                     e["score"] += sum(map(lambda r : r.count, filter(lambda r : r.emoji == e["emoji"], m.reactions))) + m.content.count(e["string"])
 
-                    # Sort emojis from most to least used
-                    emojis = sorted(emojis, key = lambda e : -e["score"])
-
-                    # Put emojis with their scores into strings
-                    emojis = list(map(lambda e : f'{self.emoji_to_string(e["emoji"])}`{str(e["score"]).zfill(3)}`', emojis))
-
-                    # Join into a single string
-                    emojis = "Emojis :\n" + "".join(emojis)
-
-                    await response.edit(content = emojis[:2000])
+                    await update_emojis_response(True)
 
                 elif "weekend" in message_split:
                     # We are in France, we speak French... OK?
