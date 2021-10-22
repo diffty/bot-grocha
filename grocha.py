@@ -162,6 +162,22 @@ class GrochaGuild:
                     else:
                         await message.channel.send(f"MAOU... :disappointed: (encore {waiting_time} avant le weekend...)")
 
+                elif "revolution" in message_split:
+                    await message.channel.send(f'''MAOU! {self.emoji_to_string("com")}
+```
+Un spectre hante l'Europe : le spectre du communisme. Toutes les puissances de la vieille Europe se sont unies en une Sainte-Alliance pour traquer ce spectre : le pape et le tsar, Metternich et Guizot, les radicaux de France et les policiers d'Allemagne.
+
+Quelle est l'opposition qui n'a pas été accusée de communisme par ses adversaires au pouvoir ? Quelle est l'opposition qui, à son tour, n'a pas renvoyé à ses adversaires de droite ou de gauche l'épithète infamante de communiste ?
+
+Il en résulte un double enseignement.
+
+Déjà le communisme est reconnu comme une puissance par toutes les puissances d'Europe.
+
+Il est grand temps que les communistes exposent à la face du monde entier, leurs conceptions, leurs buts et leurs tendances; qu'ils opposent au conte du spectre communiste un manifeste du Parti lui-même.
+
+C'est à cette fin que des communistes de diverses nationalités se sont réunis à Londres et ont rédigé le Manifeste suivant, qui est publié en anglais, français, allemand, italien, flamand et danois.
+```''')
+
                 elif "hurt" in message_split:
                     raise Exception("*grocha vient de chier une ogive, tape un sprint et se prend une porte*")
 
