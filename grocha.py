@@ -190,7 +190,7 @@ C'est à cette fin que des communistes de diverses nationalités se sont réunis
                     rebase_process = subprocess.run(['git', 'pull', '--rebase', '--autostash'], shell=True, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
                     log_process = subprocess.run(['git', 'log', '-10', '--decorate=no', '--pretty=%h %>(16)%cr: %s (%an)'], shell=True, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
                     result_string = f'MAOU! _(updating myself!)_\n**Results**\n```{rebase_process.stdout.strip()}\n\n{log_process.stdout.strip()}```'
-                    await message.channel.send(result_string[:4000])
+                    await message.channel.send(result_string[:2000])
 
                 elif "restart" in message_split:
                     await message.channel.send(f'MAOU~ _(takin a short nap bruh)_')
