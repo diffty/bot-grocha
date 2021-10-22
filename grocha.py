@@ -35,6 +35,8 @@ class GrochaGuild:
         return discord.utils.get(self.server.emojis, name = emoji_name)
 
     def emoji_to_string(self, emoji):
+        if type(emoji) == str:
+            emoji = self.get_emoji_by_name(emoji)
         return f'<{"a" if emoji.animated else ""}:{emoji.name}:{str(emoji.id)}>'
 
     def get_text_channels(self):
