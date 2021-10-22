@@ -1,6 +1,6 @@
 import sys
 import traceback
-import datetime
+from datetime import datetime, timezone, timedelta
 import subprocess
 
 import discord
@@ -137,13 +137,18 @@ class GrochaGuild:
                     await response.edit(content = emojis[:2000])
 
                 elif "weekend" in message_split:
-                    current_date = datetime.datetime.now()
-                    if current_date.weekday() > 4 or current_date.weekday() == 4 and current_date.hour >= 18:
+                    # We are in France, we speak French... OK?
+                    current_date = datetime.now(timezone(timedelta(hours=2)))
+                    weekend_date = current_date + timedelta(
+                        days = 4 - current_date.weekday(),
+                        hours = 18 - current_date.hour,
+                        minutes = 0 - current_date.minute,
+                        seconds = 0 - current_date.second,
+                    )
+                    waiting_time = weekend_date - current_date
+                    if waiting_time <= timedelta(0):
                         await message.channel.send(f"MAOU! {self.emoji_to_string(self.grant_emoji)} (c'est le weekend!)")
                     else:
-                        weekend_date = datetime.datetime.now() + datetime.timedelta(days = 5 - current_date.weekday())
-                        weekend_date = datetime.datetime(weekend_date.year, weekend_date.month, weekend_date.day, 18)
-                        waiting_time = weekend_date - current_date
                         await message.channel.send(f"MAOU... :disappointed: (encore {waiting_time} avant le weekend...)")
 
                 elif "hurt" in message_split:
