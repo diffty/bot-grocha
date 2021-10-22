@@ -187,7 +187,7 @@ C'est à cette fin que des communistes de diverses nationalités se sont réunis
                     await message.channel.send(f'MAOU :date:\nSha1: `{sha1}`\nDate: `{date}`')
 
                 elif "update" in message_split:
-                    rebase_results = subprocess.run(['git stash && git pull --rebase && git stash pop'], shell=True, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                    rebase_results = subprocess.run(['git pull --rebase --autostash'], shell=True, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
                     await message.channel.send(f'MAOU! _(updating myself!)_\n**Results**\n```{rebase_results.stdout.strip()}```')
 
                 elif "restart" in message_split:
