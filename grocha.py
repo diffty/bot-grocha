@@ -69,7 +69,7 @@ class GrochaGuild:
             users_emoji = list(set(users_emoji))
 
             if users_emoji:
-                await member.add_roles(self.role_main, reason=f"Permission accordée par {', '.join(users_emoji)} & Grocha le {(datetime.datetime.now() + datetime.timedelta(1)).strftime('%Y-%m-%d %H:%M:%S')}")
+                await member.add_roles(self.role_main, reason=f"Permission accordée par {', '.join(users_emoji)} & Grocha le {(datetime.now() + timedelta(1)).strftime('%Y-%m-%d %H:%M:%S')}")
                 del self.greet_messages_in_wait[message.id]
 
         if message.id in self.kick_messages_in_wait.keys():
@@ -87,7 +87,7 @@ class GrochaGuild:
             if len(users_emoji) > 2:
                 try:
                     for m in members:
-                        await self.server.kick(m, reason=f"Utilisateur kické par {', '.join(users_emoji)} & Grocha le {(datetime.datetime.now() + datetime.timedelta(1)).strftime('%Y-%m-%d %H:%M:%S')}")
+                        await self.server.kick(m, reason=f"Utilisateur kické par {', '.join(users_emoji)} & Grocha le {(datetime.now() + timedelta(1)).strftime('%Y-%m-%d %H:%M:%S')}")
                     del self.kick_messages_in_wait[message.id]
                 except Exception as e:
                     await self.deal_with_exception(e, message.channel)
@@ -118,7 +118,7 @@ class GrochaGuild:
                     else:
                         channels = self.get_text_channels()
 
-                    after = datetime.datetime.now() - datetime.timedelta(days = 180)
+                    after = datetime.now() - timedelta(days = 180)
                     for channel in channels:
                         async for m in channel.history(limit = 100, after = after, oldest_first = False):
                             if m.author != self.user:
