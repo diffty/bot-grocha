@@ -187,8 +187,8 @@ C'est à cette fin que des communistes de diverses nationalités se sont réunis
                     await message.channel.send(f'MAOU :date:\nSha1: `{sha1}`\nDate: `{date}`')
 
                 elif "update" in message_split:
-                    rebase_process = subprocess.run(['git', 'pull', '--rebase', '--autostash'], shell=True, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-                    log_process = subprocess.run(['git', 'log', '-10', '--decorate=no', '--pretty=%h %>(16)%cr: %s (%an)'], shell=True, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                    rebase_process = subprocess.run('git pull --rebase --autostash', shell=True, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                    log_process = subprocess.run("git --no-pager log --graph --pretty=format:' %h - %s (%cr)<%an>' --abbrev-commit | head -n 10", shell=True, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
                     result_string = f'MAOU! _(updating myself!)_\n**Results**\n```{rebase_process.stdout.strip()}\n\n{log_process.stdout.strip()}```'
                     await message.channel.send(result_string[:2000])
 
