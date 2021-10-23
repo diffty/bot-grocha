@@ -188,11 +188,9 @@ C'est à cette fin que des communistes de diverses nationalités se sont réunis
 
                 elif "update" in message_split:
                     rebase_process = subprocess.run(["git", "pull", "--rebase", "--autostash"], text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                    log_process = subprocess.run(["git", "log", "-10", "--pretty=format:%h - %s (%cr) <%an>"], text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
-                    log_process = subprocess.Popen(["git", "--no-pager", "log", "--graph", "--pretty=format:%h - %s (%cr) <%an>", "--abbrev-commit"], stdout=subprocess.PIPE)
-                    log_results = subprocess.check_output(["head", "-n", "10"], stdin=log_process.stdout)
-                    
-                    result_string = f'MAOU! _(updating myself!)_\n**Results**\n```{rebase_process.stdout.strip()}\n\n{log_results.decode("utf-8")}```'
+                    result_string = f'MAOU! _(updating myself!)_\n**Results**\n```{rebase_process.stdout.strip()}\n\n{log_process.stdout.strip()}```'
                     await message.channel.send(result_string[:2000])
 
                 elif "restart" in message_split:
