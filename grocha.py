@@ -6,13 +6,14 @@ import subprocess
 import discord
 
 import config
-
+import json
 
 class GrochaGuild:
     def __init__(self, bot, guild):
         self.bot = bot
         self.user = self.bot.user
         self.server = guild
+        self.memory_file_name = str(self.server.id) + "-memory.json"
         self.greet_messages_in_wait = {}
         self.kick_messages_in_wait = {}
         self.chan_welcome = self.get_channel_by_name(config.WELCOME_CHANNEL_NAME)
@@ -24,6 +25,12 @@ class GrochaGuild:
             raise Exception(f"<!!> Can't find role named {config.MAIN_ROLE_NAME}")
 
         self.grant_emoji = self.get_emoji_by_name(config.GRANT_EMOJI_NAME)
+
+        try:
+            with open(self.memory_file_name, "r") as memory_file:
+                self.memory = json.load(memory_file)
+        except FileNotFoundError:
+            self.memory = {}
 
     def get_channel_by_name(self, channel_name):
         return discord.utils.get(self.server.channels, name = channel_name)
@@ -41,6 +48,10 @@ class GrochaGuild:
 
     def get_text_channels(self):
         return list(filter(lambda c : isinstance(c, discord.channel.TextChannel), self.server.channels))
+
+    def save_memory(self):
+        with open(self.memory_file_name, "w") as memory_file:
+            json.dump(self.memory, memory_file)
 
     async def on_ready(self):
         print(f"Connected on Discord server {self.server}")
