@@ -181,9 +181,6 @@ class GrochaGuild:
                         await message.channel.send(f"MAOU... :disappointed: (encore {waiting_time} avant le weekend...)")
 
                 elif "meteo" in message_split:
-                    if not config.OPENWEATHER_KEY:
-                        raise Exception("Open Weather has not been configured")
-
                     # TODO: allow different places (currently only Paris) but no idea how to make that simple and systemic
                     weather_text = request.urlopen(f"https://api.openweathermap.org/data/2.5/onecall?lat=48.85341&lon=2.3488&appid={config.OPENWEATHER_KEY}&units=metric&lang=fr").read()
                     weather = json.loads(weather_text)
