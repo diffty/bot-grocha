@@ -2,6 +2,7 @@ import json
 import subprocess
 import sys
 import traceback
+import unicodedata
 from datetime import datetime, timedelta, timezone
 from urllib import request
 
@@ -108,9 +109,11 @@ class GrochaGuild:
                     await self.deal_with_exception(e, message.channel)
 
     async def on_message(self, message):
+        def remove_accents(input_str):
+            return unicodedata.normalize('NFKD', input_str).encode('ASCII', 'ignore').decode('ascii')
         try:
             if self.user.mentioned_in(message):
-                message_split = message.content.split()
+                message_split = remove_accents(message.content).lower().split()
                 if "kick" in message_split:
                     members = list(filter(lambda u: u != self.user, message.mentions))
                     if members:
