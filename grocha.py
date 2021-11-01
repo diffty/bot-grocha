@@ -177,6 +177,70 @@ class GrochaGuild:
                     else:
                         await message.channel.send(f"MAOU... :disappointed: (encore {waiting_time} avant le weekend...)")
 
+                elif "meteo" in message_split:
+                    if not config.OPENWEATHER_KEY:
+                        raise Exception("Open Weather has not been configured")
+
+                    # TODO: allow different places (currently only Paris) but no idea how to make that simple and systemic
+                    weather_text = request.urlopen(f"https://api.openweathermap.org/data/2.5/onecall?lat=48.85341&lon=2.3488&appid={config.OPENWEATHER_KEY}&units=metric&lang=fr").read()
+                    weather = json.loads(weather_text)
+                    current_time = weather['current']['dt']
+
+                    def get_weather_emoji(id):
+                        weather_emoji = [
+                            (200, ":thunder_cloud_rain:"),
+                            (300, ":cloud_rain:"),
+                            (600, ":cloud_snow:"),
+                            (800, ":sunny:"),
+                            (801, ":white_sun_small_cloud:"),
+                            (802, ":white_sun_cloud:"),
+                            (803, ":white_sun_cloud:"),
+                            (804, ":cloud:"),
+                        ]
+                        weather_emoji.reverse()
+                        # Take first value equal or below id
+                        for pair in weather_emoji:
+                            if pair[0] <= id:
+                                return pair[1]
+
+                    def get_temp(temp_block):
+                        if type(temp_block) == dict:
+                            return f"{round(temp_block['min'])}-{round(temp_block['max'])}°C".ljust(7)
+                        else:
+                            return f"{format(temp_block, '.1f')}°C".ljust(6)
+                    def get_weather_desc(weather_block):
+                        return f"{get_weather_emoji(weather_block['weather'][0]['id'])}`{get_temp(weather_block['temp'])}`"
+
+                    response = f"MAOU-téo:"
+                    response += f"\nEn ce moment: {get_weather_desc(weather['current'])}"
+
+                    # Rain in the next hour
+                    active_minutely = list(filter(lambda m: m['precipitation'] > 0, weather['minutely']))
+                    if len(active_minutely) > 0:
+                        response += f"\nPluie dans {(active_minutely[0]['dt'] - current_time) / 60} minutes :umbrella:"
+                    else:
+                        response += f"\nPas de pluie prévue dans l'heure :muscle:"
+
+                    # Weather per hour
+                    response += "\n"
+                    def get_weather_for_hour(hour):
+                        weather_block = weather['hourly'][hour]
+                        date = datetime.fromtimestamp(weather_block['dt'])
+                        return f"`{format(date.hour, '0>2')}h:`{get_weather_desc(weather_block)}"
+                    for hour in range(0, min(16, len(weather['hourly'])), 4):
+                        response += "\n" + " - ".join([get_weather_for_hour(h) for h in range(hour, hour + 4)])
+
+                    # Weather per day
+                    response += "\n"
+                    def get_weather_for_day(day):
+                        day_name = ("Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim")
+                        weather_block = weather['daily'][day]
+                        date = datetime.fromtimestamp(weather_block['dt'])
+                        return f"`{day_name[date.day]}:`{get_weather_desc(weather_block)}"
+                    response += "\n" + " - ".join([get_weather_for_day(day) for day in range(min(6, len(weather['daily'])))])
+
+                    await message.channel.send(response)
+
                 elif "revolution" in message_split:
                     await message.channel.send(f'''MAOU! {self.emoji_to_string("com")}
 ```
