@@ -170,6 +170,8 @@ class GrochaGuild:
                     waiting_time = weekend_date - current_date
                     if waiting_time <= timedelta(0):
                         await message.channel.send(f"MAOU! {self.emoji_to_string(self.grant_emoji)} (c'est le weekend!)")
+                    elif waiting_time <= timedelta(hours = 1):
+                        await message.channel.send(f"MAOU... :eyes: (plus que {waiting_time} avant le weekend...)")
                     else:
                         await message.channel.send(f"MAOU... :disappointed: (encore {waiting_time} avant le weekend...)")
 
