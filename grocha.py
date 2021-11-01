@@ -222,7 +222,7 @@ C'est à cette fin que des communistes de diverses nationalités se sont réunis
     async def deal_with_exception(self, e, channel):
         # Allow a debugger to catch the exception if it's watching
         if not sys.gettrace() is None:
-            raise e
+            raise
 
         # Warn the original channel about the problem
         if channel:
