@@ -163,7 +163,7 @@ class GrochaGuild:
 
                     await update_emojis_response(True)
 
-                elif "weekend" in message_split:
+                elif "weekend" in message_split or "week-end" in message_split:
                     # We are in France, we speak French... OK?
                     current_date = datetime.now(timezone(timedelta(hours=2)))
                     weekend_date = current_date + timedelta(
