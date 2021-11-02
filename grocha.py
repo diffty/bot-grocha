@@ -239,7 +239,7 @@ class GrochaGuild:
                         day_name = ("Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim")
                         weather_block = weather['daily'][day]
                         date = datetime.fromtimestamp(weather_block['dt'])
-                        return f"`{day_name[date.day]}:`{get_weather_desc(weather_block)}"
+                        return f"`{day_name[date.weekday()]}:`{get_weather_desc(weather_block)}"
                     response += "\n" + " - ".join([get_weather_for_day(day) for day in range(min(6, len(weather['daily'])))])
 
                     await message.channel.send(response)
