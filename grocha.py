@@ -1,4 +1,5 @@
 import json
+import re
 import subprocess
 import sys
 import traceback
@@ -34,6 +35,9 @@ class GrochaGuild:
                 self.memory = json.load(memory_file)
         except FileNotFoundError:
             self.memory = {}
+
+        if not "autoreact" in self.memory:
+            self.memory["autoreact"] = {}
 
     def get_channel_by_name(self, channel_name):
         return discord.utils.get(self.server.channels, name = channel_name)
@@ -180,6 +184,23 @@ class GrochaGuild:
                     else:
                         await message.channel.send(f"MAOU... :disappointed: (encore {waiting_time} avant le weekend...)")
 
+                elif "autoreact" in message_split:
+                    word_regex = "^\\w+$"
+                    emoji_regex = "^(<a?:\\w+:\\d+>)|[\u263a-\U0001ffff]$"
+                    words = list(filter(lambda w: not w in ["autoreact", "remove"] and re.search(word_regex, w), message_split))
+                    emojis = list(filter(lambda w: re.search(emoji_regex, w), message_split))
+                    is_removing = "remove" in message_split
+
+                    for word in words:
+                        if not word in self.memory["autoreact"]:
+                            self.memory["autoreact"][word] = {}
+                        for emoji in emojis:
+                            if is_removing:
+                                self.memory["autoreact"][word].pop(emoji, None)
+                            else:
+                                self.memory["autoreact"][word][emoji] = True
+                    self.save_memory()
+
                 elif "meteo" in message_split:
                     # TODO: allow different places (currently only Paris) but no idea how to make that simple and systemic
                     weather_text = request.urlopen(f"https://api.openweathermap.org/data/2.5/onecall?lat=48.85341&lon=2.3488&appid={config.OPENWEATHER_KEY}&units=metric&lang=fr").read()
@@ -278,6 +299,11 @@ C'est à cette fin que des communistes de diverses nationalités se sont réunis
 
                 else:
                     await message.channel.send("MAOU?")
+            else: # Look for autoreactions
+                for word in message_split:
+                    if word in self.memory["autoreact"]:
+                        for emoji in self.memory["autoreact"][word]:
+                            await message.add_reaction(emoji)
 
         except Exception as e:
             await self.deal_with_exception(e, message.channel)
