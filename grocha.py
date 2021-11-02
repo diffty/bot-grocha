@@ -16,7 +16,7 @@ class GrochaGuild:
         self.bot = bot
         self.user = self.bot.user
         self.server = guild
-        self.memory_file_name = str(self.server.id) + "-memory.json"
+        self.memory_file_name = f"memory-{self.server.id}.json"
         self.greet_messages_in_wait = {}
         self.kick_messages_in_wait = {}
         self.chan_welcome = self.get_channel_by_name(config.WELCOME_CHANNEL_NAME)
