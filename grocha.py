@@ -109,11 +109,11 @@ class GrochaGuild:
                     await self.deal_with_exception(e, message.channel)
 
     async def on_message(self, message):
-        def remove_accents(input_str):
-            return unicodedata.normalize('NFKD', input_str).encode('ASCII', 'ignore').decode('ascii')
+        def remove_accents(str):
+            return str.replace("é","e").replace("è","e").replace("à","a")
         try:
+            message_split = remove_accents(message.content.lower()).split()
             if self.user.mentioned_in(message):
-                message_split = remove_accents(message.content).lower().split()
                 if "kick" in message_split:
                     members = list(filter(lambda u: u != self.user, message.mentions))
                     if members:
