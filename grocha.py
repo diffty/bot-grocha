@@ -1,9 +1,9 @@
 import json
+import random
 import re
 import subprocess
 import sys
 import traceback
-import unicodedata
 from datetime import datetime, timedelta, timezone
 from urllib import request
 
@@ -303,7 +303,8 @@ C'est à cette fin que des communistes de diverses nationalités se sont réunis
                 for word in message_split:
                     if word in self.memory["autoreact"]:
                         for emoji in self.memory["autoreact"][word]:
-                            await message.add_reaction(emoji)
+                            if random.random() > 0.5:
+                                await message.add_reaction(emoji)
 
         except Exception as e:
             await self.deal_with_exception(e, message.channel)
