@@ -206,6 +206,7 @@ class GrochaGuild:
                     weather_text = request.urlopen(f"https://api.openweathermap.org/data/2.5/onecall?lat=48.85341&lon=2.3488&appid={config.OPENWEATHER_KEY}&units=metric&lang=fr").read()
                     weather = json.loads(weather_text)
                     current_time = weather['current']['dt']
+                    current_date = datetime.fromtimestamp(current_time)
 
                     def get_weather_emoji(id):
                         weather_emoji = [
@@ -233,7 +234,7 @@ class GrochaGuild:
                         return f"{get_weather_emoji(weather_block['weather'][0]['id'])}`{get_temp(weather_block['temp'])}`"
 
                     response = f"MAOU-téo:"
-                    response += f"\nEn ce moment: {get_weather_desc(weather['current'])}"
+                    response += f"\nEn ce moment ({current_date}): {get_weather_desc(weather['current'])}"
 
                     # Rain in the next hour
                     active_minutely = list(filter(lambda m: m['precipitation'] > 0, weather['minutely']))
