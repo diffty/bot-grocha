@@ -41,10 +41,10 @@ class GrochaGuild:
             self.memory["autoreact"] = {}
 
         # Clean obsolete autoreact emojis
-        for word in self.memory["autoreact"]:
-            for emoji in self.memory["autoreact"][word].copy():
-                if not self.is_emoji_string(emoji):
-                    self.memory["autoreact"][word].pop(emoji, None)
+        #for word in self.memory["autoreact"]:
+            #for emoji in self.memory["autoreact"][word].copy():
+                #if not self.is_emoji_string(emoji):
+                    #self.memory["autoreact"][word].pop(emoji, None)
 
     def get_channel_by_name(self, channel_name):
         return discord.utils.get(self.server.channels, name = channel_name)
