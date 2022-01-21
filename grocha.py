@@ -139,187 +139,14 @@ class GrochaGuild:
             return str.replace("é","e").replace("è","e").replace("à","a")
         try:
             message_split = remove_accents(message.content.lower()).split()
-            if self.user.mentioned_in(message):
-                if "kick" in message_split:
-                    members = list(filter(lambda u: u != self.user, message.mentions))
-                    if members:
-                        message = await self.chan_main.send(f"MAOU! **{', '.join(list(map(lambda m: m.name, members)))}** est sur le point d'être kické.\nRéagissez à ce message avec au moins 3 emojis {self.emoji_to_string(self.grant_emoji)} pour valider la décision!")
-                        self.kick_messages_in_wait[message.id] = members
-
-                elif "lick" in message_split:
-                    members = list(filter(lambda u: u != self.user, message.mentions))
-                    if not members:
-                        members = [message.author]
-
-                    lick = self.emoji_to_string(self.get_emoji_by_name('lick'))
-                    message = await message.channel.send(f"{lick} **{f' {lick} '.join(list(map(lambda m: m.name, members)))}** {lick}")
-
-                elif "emojis" in message_split:
-                    response = await message.channel.send('Emojis...')
-                    emojis = list(map(lambda e : {"emoji": e, "score": 0, "string": self.emoji_to_string(e)}, self.server.emojis))
-                    async def update_emojis_response(final = False):
-                        # Sort emojis from most to least used
-                        sorted_emojis = sorted(emojis, key = lambda e : -e["score"])
-
-                        # Put emojis with their scores into strings
-                        sorted_emojis = list(map(lambda e : f'{self.emoji_to_string(e["emoji"])}`{str(e["score"])}`', sorted_emojis))
-
-                        # Join into a single string
-                        sorted_emojis = "-".join(sorted_emojis)
-
-                        if final:
-                            sorted_emojis = "Emojis :\n" + sorted_emojis
-                        else:
-                            sorted_emojis = "Emojis : (calcul en cours)\n" + sorted_emojis
-
-                        await response.edit(content = sorted_emojis[:2000])
-
-                    if "here" in message_split:
-                        channels = [message.channel]
-                    else:
-                        channels = self.get_text_channels()
-
-                    after = datetime.now() - timedelta(days = 180)
-                    for channel in channels:
-                        await update_emojis_response()
-                        async for m in channel.history(limit = 1000, after = after, oldest_first = False):
-                            if m.author != self.user:
-                                for e in emojis:
-                                    e["score"] += sum(map(lambda r : r.count, filter(lambda r : r.emoji == e["emoji"], m.reactions))) + m.content.count(e["string"])
-
-                    await update_emojis_response(True)
-
-                elif "weekend" in message_split or "week-end" in message_split:
-                    # We are in France, we speak French... OK?
-                    current_date = datetime.now(timezone(timedelta(hours=2)))
-                    weekend_date = current_date + timedelta(
-                        days = 4 - current_date.weekday(),
-                        hours = 18 - current_date.hour,
-                        minutes = 0 - current_date.minute,
-                        seconds = 0 - current_date.second,
-                    )
-                    waiting_time = weekend_date - current_date
-                    if waiting_time <= timedelta(0):
-                        await message.channel.send(f"MAOU! {self.emoji_to_string(self.grant_emoji)} (c'est le weekend!)")
-                    elif waiting_time <= timedelta(hours = 1):
-                        await message.channel.send(f"MAOU... :eyes: (plus que {waiting_time} avant le weekend...)")
-                    else:
-                        await message.channel.send(f"MAOU... :disappointed: (encore {waiting_time} avant le weekend...)")
-
-                elif "autoreact" in message_split:
-                    word_regex = "^\\w+$"
-                    words = list(filter(lambda w: not w in ["autoreact", "remove"] and re.search(word_regex, w), message_split))
-                    emojis = list(filter(lambda w: self.is_emoji_string(w), message_split))
-                    is_removing = "remove" in message_split
-
-                    for word in words:
-                        if not word in self.memory["autoreact"]:
-                            self.memory["autoreact"][word] = {}
-                        for emoji in emojis:
-                            if is_removing:
-                                self.memory["autoreact"][word].pop(emoji, None)
-                            else:
-                                self.memory["autoreact"][word][emoji] = True
-                    self.save_memory()
-
-                elif "meteo" in message_split:
-                    # TODO: allow different places (currently only Paris) but no idea how to make that simple and systemic
-                    weather_text = request.urlopen(f"https://api.openweathermap.org/data/2.5/onecall?lat=48.85341&lon=2.3488&appid={config.OPENWEATHER_KEY}&units=metric&lang=fr").read()
-                    weather = json.loads(weather_text)
-                    current_time = weather['current']['dt']
-                    current_date = datetime.fromtimestamp(current_time)
-
-                    def get_weather_emoji(id):
-                        weather_emoji = [
-                            (200, ":thunder_cloud_rain:"),
-                            (300, ":cloud_rain:"),
-                            (600, ":cloud_snow:"),
-                            (800, ":sunny:"),
-                            (801, ":white_sun_small_cloud:"),
-                            (802, ":white_sun_cloud:"),
-                            (803, ":white_sun_cloud:"),
-                            (804, ":cloud:"),
-                        ]
-                        weather_emoji.reverse()
-                        # Take first value equal or below id
-                        for pair in weather_emoji:
-                            if pair[0] <= id:
-                                return pair[1]
-
-                    def get_temp(temp_block):
-                        if type(temp_block) == dict:
-                            return f"{round(temp_block['min'])}-{round(temp_block['max'])}°C".ljust(7)
-                        else:
-                            return f"{format(temp_block, '.1f')}°C".ljust(6)
-                    def get_weather_desc(weather_block):
-                        return f"{get_weather_emoji(weather_block['weather'][0]['id'])}`{get_temp(weather_block['temp'])}`"
-
-                    response = f"MAOU-téo:"
-                    response += f"\nEn ce moment ({current_date}): {get_weather_desc(weather['current'])}"
-
-                    # Rain in the next hour
-                    active_minutely = list(filter(lambda m: m['precipitation'] > 0, weather['minutely']))
-                    if len(active_minutely) > 0:
-                        response += f"\nPluie dans {(active_minutely[0]['dt'] - current_time) / 60} minutes :umbrella:"
-                    else:
-                        response += f"\nPas de pluie prévue dans l'heure :muscle:"
-
-                    # Weather per hour
-                    response += "\n"
-                    def get_weather_for_hour(hour):
-                        weather_block = weather['hourly'][hour]
-                        date = datetime.fromtimestamp(weather_block['dt'])
-                        return f"`{format(date.hour, '0>2')}h:`{get_weather_desc(weather_block)}"
-                    for hour in range(0, min(16, len(weather['hourly'])), 4):
-                        response += "\n" + " - ".join([get_weather_for_hour(h) for h in range(hour, hour + 4)])
-
-                    # Weather per day
-                    response += "\n"
-                    def get_weather_for_day(day):
-                        day_name = ("Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim")
-                        weather_block = weather['daily'][day]
-                        date = datetime.fromtimestamp(weather_block['dt'])
-                        return f"`{day_name[date.weekday()]}:`{get_weather_desc(weather_block)}"
-                    response += "\n" + " - ".join([get_weather_for_day(day) for day in range(min(6, len(weather['daily'])))])
-
-                    await message.channel.send(response)
-
-                elif "revolution" in message_split:
-                    await message.channel.send(f'''MAOU! {self.emoji_to_string("com")}
-```
-Un spectre hante l'Europe : le spectre du communisme. Toutes les puissances de la vieille Europe se sont unies en une Sainte-Alliance pour traquer ce spectre : le pape et le tsar, Metternich et Guizot, les radicaux de France et les policiers d'Allemagne.
-
-Quelle est l'opposition qui n'a pas été accusée de communisme par ses adversaires au pouvoir ? Quelle est l'opposition qui, à son tour, n'a pas renvoyé à ses adversaires de droite ou de gauche l'épithète infamante de communiste ?
-
-Il en résulte un double enseignement.
-
-Déjà le communisme est reconnu comme une puissance par toutes les puissances d'Europe.
-
-Il est grand temps que les communistes exposent à la face du monde entier, leurs conceptions, leurs buts et leurs tendances; qu'ils opposent au conte du spectre communiste un manifeste du Parti lui-même.
-
-C'est à cette fin que des communistes de diverses nationalités se sont réunis à Londres et ont rédigé le Manifeste suivant, qui est publié en anglais, français, allemand, italien, flamand et danois.
-```''')
-
-                elif "hurt" in message_split:
-                    raise Exception("*grocha vient de chier une ogive, tape un sprint et se prend une porte*")
-
-                elif "version" in message_split:
-                    sha1 = subprocess.run(['git', 'rev-parse', 'HEAD'], capture_output=True, text=True).stdout.strip()
-                    date = subprocess.run(['git', 'log', '-1', '--format=%cd'], capture_output=True, text=True).stdout.strip()
-                    await message.channel.send(f'MAOU :date:\nSha1: `{sha1}`\nDate: `{date}`')
-
-                elif "update" in message_split:
-                    rebase_process = subprocess.run(["git", "pull", "--rebase", "--autostash"], text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-                    log_process = subprocess.run(["git", "log", "-10", "--pretty=format:%h - %s (%cr) <%an>"], text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-
-                    result_string = f'MAOU! _(updating myself!)_\n**Results**\n```{rebase_process.stdout.strip()}\n\n{log_process.stdout.strip()}```'
-                    await message.channel.send(result_string[:2000])
-
-                elif "restart" in message_split:
-                    await message.channel.send(f'MAOU~ _(takin a short nap bruh)_')
-                    restart_results = subprocess.run(['systemctl', '--user', 'restart', 'bot-grocha'], capture_output=True, text=True).stderr.strip()
-
-                else:
+            if self.user.mentioned_in(message): # Look for callbacks
+                word_callback = None
+                for word in message_split:
+                    word_callback = getattr(self, "on_message_" + word, None)
+                    if word_callback:
+                        await word_callback(message, message_split)
+                        break
+                if not word_callback:
                     await message.channel.send("MAOU?")
             else: # Look for autoreactions
                 for word in message_split:
@@ -347,6 +174,185 @@ C'est à cette fin que des communistes de diverses nationalités se sont réunis
         tb = sys.exc_info()[2]
         exception_str = "\n".join(traceback.format_exception(e, value=e, tb=tb))
         await self.chan_debug.send(f'_Le bobo de Grocha :_\n```{exception_str}```')
+
+    async def on_message_kick(self, message, message_split):
+        members = list(filter(lambda u: u != self.user, message.mentions))
+        if members:
+            message = await self.chan_main.send(f"MAOU! **{', '.join(list(map(lambda m: m.name, members)))}** est sur le point d'être kické.\nRéagissez à ce message avec au moins 3 emojis {self.emoji_to_string(self.grant_emoji)} pour valider la décision!")
+            self.kick_messages_in_wait[message.id] = members
+
+    async def on_message_lick(self, message, message_split):
+        members = list(filter(lambda u: u != self.user, message.mentions))
+        if not members:
+            members = [message.author]
+
+        lick = self.emoji_to_string(self.get_emoji_by_name('lick'))
+        message = await message.channel.send(f"{lick} **{f' {lick} '.join(list(map(lambda m: m.name, members)))}** {lick}")
+
+    async def on_message_emojis(self, message, message_split):
+        response = await message.channel.send('Emojis...')
+        emojis = list(map(lambda e : {"emoji": e, "score": 0, "string": self.emoji_to_string(e)}, self.server.emojis))
+        async def update_emojis_response(final = False):
+            # Sort emojis from most to least used
+            sorted_emojis = sorted(emojis, key = lambda e : -e["score"])
+
+            # Put emojis with their scores into strings
+            sorted_emojis = list(map(lambda e : f'{self.emoji_to_string(e["emoji"])}`{str(e["score"])}`', sorted_emojis))
+
+            # Join into a single string
+            sorted_emojis = "-".join(sorted_emojis)
+
+            if final:
+                sorted_emojis = "Emojis :\n" + sorted_emojis
+            else:
+                sorted_emojis = "Emojis : (calcul en cours)\n" + sorted_emojis
+
+            await response.edit(content = sorted_emojis[:2000])
+
+        if "here" in message_split:
+            channels = [message.channel]
+        else:
+            channels = self.get_text_channels()
+
+        after = datetime.now() - timedelta(days = 180)
+        for channel in channels:
+            await update_emojis_response()
+            async for m in channel.history(limit = 1000, after = after, oldest_first = False):
+                if m.author != self.user:
+                    for e in emojis:
+                        e["score"] += sum(map(lambda r : r.count, filter(lambda r : r.emoji == e["emoji"], m.reactions))) + m.content.count(e["string"])
+
+        await update_emojis_response(True)
+
+    async def on_message_weekend(self, message, message_split):
+        # We are in France, we speak French... OK?
+        current_date = datetime.now(timezone(timedelta(hours=2)))
+        weekend_date = current_date + timedelta(
+            days = 4 - current_date.weekday(),
+            hours = 18 - current_date.hour,
+            minutes = 0 - current_date.minute,
+            seconds = 0 - current_date.second,
+        )
+        waiting_time = weekend_date - current_date
+        if waiting_time <= timedelta(0):
+            await message.channel.send(f"MAOU! {self.emoji_to_string(self.grant_emoji)} (c'est le weekend!)")
+        elif waiting_time <= timedelta(hours = 1):
+            await message.channel.send(f"MAOU... :eyes: (plus que {waiting_time} avant le weekend...)")
+        else:
+            await message.channel.send(f"MAOU... :disappointed: (encore {waiting_time} avant le weekend...)")
+
+    async def on_message_autoreact(self, message, message_split):
+        word_regex = "^\\w+$"
+        words = list(filter(lambda w: not w in ["autoreact", "remove"] and re.search(word_regex, w), message_split))
+        emojis = list(filter(lambda w: self.is_emoji_string(w), message_split))
+        is_removing = "remove" in message_split
+
+        for word in words:
+            if not word in self.memory["autoreact"]:
+                self.memory["autoreact"][word] = {}
+            for emoji in emojis:
+                if is_removing:
+                    self.memory["autoreact"][word].pop(emoji, None)
+                else:
+                    self.memory["autoreact"][word][emoji] = True
+        self.save_memory()
+
+    async def on_message_meteo(self, message, message_split):
+        # TODO: allow different places (currently only Paris) but no idea how to make that simple and systemic
+        weather_text = request.urlopen(f"https://api.openweathermap.org/data/2.5/onecall?lat=48.85341&lon=2.3488&appid={config.OPENWEATHER_KEY}&units=metric&lang=fr").read()
+        weather = json.loads(weather_text)
+        current_time = weather['current']['dt']
+        current_date = datetime.fromtimestamp(current_time)
+
+        def get_weather_emoji(id):
+            weather_emoji = [
+                (200, ":thunder_cloud_rain:"),
+                (300, ":cloud_rain:"),
+                (600, ":cloud_snow:"),
+                (800, ":sunny:"),
+                (801, ":white_sun_small_cloud:"),
+                (802, ":white_sun_cloud:"),
+                (803, ":white_sun_cloud:"),
+                (804, ":cloud:"),
+            ]
+            weather_emoji.reverse()
+            # Take first value equal or below id
+            for pair in weather_emoji:
+                if pair[0] <= id:
+                    return pair[1]
+
+        def get_temp(temp_block):
+            if type(temp_block) == dict:
+                return f"{round(temp_block['min'])}-{round(temp_block['max'])}°C".ljust(7)
+            else:
+                return f"{format(temp_block, '.1f')}°C".ljust(6)
+        def get_weather_desc(weather_block):
+            return f"{get_weather_emoji(weather_block['weather'][0]['id'])}`{get_temp(weather_block['temp'])}`"
+
+        response = f"MAOU-téo:"
+        response += f"\nEn ce moment ({current_date}): {get_weather_desc(weather['current'])}"
+
+        # Rain in the next hour
+        active_minutely = list(filter(lambda m: m['precipitation'] > 0, weather['minutely']))
+        if len(active_minutely) > 0:
+            response += f"\nPluie dans {(active_minutely[0]['dt'] - current_time) / 60} minutes :umbrella:"
+        else:
+            response += f"\nPas de pluie prévue dans l'heure :muscle:"
+
+        # Weather per hour
+        response += "\n"
+        def get_weather_for_hour(hour):
+            weather_block = weather['hourly'][hour]
+            date = datetime.fromtimestamp(weather_block['dt'])
+            return f"`{format(date.hour, '0>2')}h:`{get_weather_desc(weather_block)}"
+        for hour in range(0, min(16, len(weather['hourly'])), 4):
+            response += "\n" + " - ".join([get_weather_for_hour(h) for h in range(hour, hour + 4)])
+
+        # Weather per day
+        response += "\n"
+        def get_weather_for_day(day):
+            day_name = ("Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim")
+            weather_block = weather['daily'][day]
+            date = datetime.fromtimestamp(weather_block['dt'])
+            return f"`{day_name[date.weekday()]}:`{get_weather_desc(weather_block)}"
+        response += "\n" + " - ".join([get_weather_for_day(day) for day in range(min(6, len(weather['daily'])))])
+
+        await message.channel.send(response)
+
+    async def on_message_revolution(self, message, message_split):
+        await message.channel.send(f'''MAOU! {self.emoji_to_string("com")}
+```
+Un spectre hante l'Europe : le spectre du communisme. Toutes les puissances de la vieille Europe se sont unies en une Sainte-Alliance pour traquer ce spectre : le pape et le tsar, Metternich et Guizot, les radicaux de France et les policiers d'Allemagne.
+
+Quelle est l'opposition qui n'a pas été accusée de communisme par ses adversaires au pouvoir ? Quelle est l'opposition qui, à son tour, n'a pas renvoyé à ses adversaires de droite ou de gauche l'épithète infamante de communiste ?
+
+Il en résulte un double enseignement.
+
+Déjà le communisme est reconnu comme une puissance par toutes les puissances d'Europe.
+
+Il est grand temps que les communistes exposent à la face du monde entier, leurs conceptions, leurs buts et leurs tendances; qu'ils opposent au conte du spectre communiste un manifeste du Parti lui-même.
+
+C'est à cette fin que des communistes de diverses nationalités se sont réunis à Londres et ont rédigé le Manifeste suivant, qui est publié en anglais, français, allemand, italien, flamand et danois.
+```''')
+
+    async def on_message_hurt(self, message, message_split):
+        raise Exception("*grocha vient de chier une ogive, tape un sprint et se prend une porte*")
+
+    async def on_message_version(self, message, message_split):
+        sha1 = subprocess.run(['git', 'rev-parse', 'HEAD'], capture_output=True, text=True).stdout.strip()
+        date = subprocess.run(['git', 'log', '-1', '--format=%cd'], capture_output=True, text=True).stdout.strip()
+        await message.channel.send(f'MAOU :date:\nSha1: `{sha1}`\nDate: `{date}`')
+
+    async def on_message_update(self, message, message_split):
+        rebase_process = subprocess.run(["git", "pull", "--rebase", "--autostash"], text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        log_process = subprocess.run(["git", "log", "-10", "--pretty=format:%h - %s (%cr) <%an>"], text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+
+        result_string = f'MAOU! _(updating myself!)_\n**Results**\n```{rebase_process.stdout.strip()}\n\n{log_process.stdout.strip()}```'
+        await message.channel.send(result_string[:2000])
+
+    async def on_message_restart(self, message, message_split):
+        await message.channel.send(f'MAOU~ _(takin a short nap bruh)_')
+        restart_results = subprocess.run(['systemctl', '--user', 'restart', 'bot-grocha'], capture_output=True, text=True).stderr.strip()
 
 
 class GrochaBot(discord.Client):
