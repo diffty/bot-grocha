@@ -62,16 +62,16 @@ class GrochaGuild:
             return "⚠️"
         return f'<{"a" if emoji.animated else ""}:{emoji.name}:{str(emoji.id)}>'
 
-    def is_emoji_string(self, str):
+    def is_emoji_string(self, emoji_str):
         native_emoji_regex = "^[\u263a-\U0001ffff]$"
-        if re.search(native_emoji_regex, str):
+        if re.search(native_emoji_regex, emoji_str):
             return True
 
         custom_emoji_regex = "^<a?:(\\w+):(\\d+)>$"
-        match = re.search(custom_emoji_regex, str)
+        match = re.search(custom_emoji_regex, emoji_str)
         if match:
-            custom_emoji = self.get_emoji_by_name(match.group(0))
-            return custom_emoji and str(custom_emoji.id) == match.group(1)
+            custom_emoji = self.get_emoji_by_name(match.group(1))
+            return custom_emoji and str(custom_emoji.id) == match.group(2)
 
         return False
 
