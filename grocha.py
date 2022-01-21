@@ -58,6 +58,8 @@ class GrochaGuild:
     def emoji_to_string(self, emoji):
         if type(emoji) == str:
             emoji = self.get_emoji_by_name(emoji)
+        if not emoji:
+            return "⚠️"
         return f'<{"a" if emoji.animated else ""}:{emoji.name}:{str(emoji.id)}>'
 
     def is_emoji_string(self, str):
