@@ -53,6 +53,19 @@ class GrochaGuild:
             emoji = self.get_emoji_by_name(emoji)
         return f'<{"a" if emoji.animated else ""}:{emoji.name}:{str(emoji.id)}>'
 
+    def is_emoji_string(self, str):
+        native_emoji_regex = "^[\u263a-\U0001ffff]$"
+        if re.search(native_emoji_regex, str):
+            return True
+
+        custom_emoji_regex = "^<a?:(\\w+):(\\d+)>$"
+        match = re.search(custom_emoji_regex, str)
+        if match:
+            custom_emoji = self.get_emoji_by_name(match.group(0))
+            return custom_emoji and str(custom_emoji.id) == match.group(1)
+
+        return False
+
     def get_text_channels(self):
         return list(filter(lambda c : isinstance(c, discord.channel.TextChannel), self.server.channels))
 
@@ -186,9 +199,8 @@ class GrochaGuild:
 
                 elif "autoreact" in message_split:
                     word_regex = "^\\w+$"
-                    emoji_regex = "^(<a?:\\w+:\\d+>)|[\u263a-\U0001ffff]$"
                     words = list(filter(lambda w: not w in ["autoreact", "remove"] and re.search(word_regex, w), message_split))
-                    emojis = list(filter(lambda w: re.search(emoji_regex, w), message_split))
+                    emojis = list(filter(lambda w: self.is_emoji_string(w), message_split))
                     is_removing = "remove" in message_split
 
                     for word in words:
