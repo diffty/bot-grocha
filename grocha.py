@@ -335,6 +335,28 @@ Il est grand temps que les communistes exposent à la face du monde entier, leur
 C'est à cette fin que des communistes de diverses nationalités se sont réunis à Londres et ont rédigé le Manifeste suivant, qui est publié en anglais, français, allemand, italien, flamand et danois.
 ```''')
 
+    async def on_message_grodle(self, message, message_split):
+        words = list(filter(lambda w : not w.startswith('<@!') and w != "grodle", message_split))
+        if len(words) != 1:
+            return await message.reply("Proposez un (seul) mot !")
+        word = words[0]
+
+        if not "grodle" in self.memory:
+            self.memory["grodle"] = word
+            channel = message.channel
+            await message.delete()
+            await channel.send(f'Nouveau mot de {len(word)} lettres à deviner !')
+        elif len(word) != len(self.memory["grodle"]):
+            await message.reply(f'Le mot actuel contient {len(self.memory["grodle"])} lettres !')
+        elif word == self.memory["grodle"]:
+            self.memory.pop("grodle")
+            await message.reply(f'Bien joué {message.author.mention} !')
+        else:
+
+            await message.reply(f"{word} n'est pas le bon mot!")
+
+        self.save_memory()
+
     async def on_message_hurt(self, message, message_split):
         raise Exception("*grocha vient de chier une ogive, tape un sprint et se prend une porte*")
 
