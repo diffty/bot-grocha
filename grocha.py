@@ -11,6 +11,8 @@ import discord
 
 import config
 
+def remove_accents(str):
+    return str.replace("é","e").replace("è","e").replace("à","a")
 
 class GrochaGuild:
     def __init__(self, bot, guild):
@@ -135,8 +137,6 @@ class GrochaGuild:
                     await self.deal_with_exception(e, message.channel)
 
     async def on_message(self, message):
-        def remove_accents(str):
-            return str.replace("é","e").replace("è","e").replace("à","a")
         try:
             message_split = remove_accents(message.content.lower()).split()
             if self.user.mentioned_in(message): # Look for callbacks
@@ -339,7 +339,7 @@ C'est à cette fin que des communistes de diverses nationalités se sont réunis
         words = list(filter(lambda w : not w.startswith('<@!') and w != "grodle", message_split))
         if len(words) != 1:
             return await message.reply("Proposez un (seul) mot !")
-        word = words[0].strip('|').upper()
+        word = remove_accents(words[0].strip('|').lower()).upper()
 
         max_letter_count = 8
         if len(word) > max_letter_count:
