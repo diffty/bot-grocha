@@ -360,11 +360,11 @@ C'est à cette fin que des communistes de diverses nationalités se sont réunis
             for i in range(len(word)):
                 grodle_letters += f':regional_indicator_{word[i].lower()}:'
                 if word[i] == grodle[i]:
-                    grodle_emojis += '🟩'
+                    grodle_emojis += ':green_square: '
                 elif word[i] in grodle:
-                    grodle_emojis += '🟨'
+                    grodle_emojis += ':yellow_square:'
                 else:
-                    grodle_emojis += '⬛'
+                    grodle_emojis += ':black_large_square:'
 
             if word == grodle:
                 self.memory.pop("grodle")
