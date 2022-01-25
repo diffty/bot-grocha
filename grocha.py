@@ -356,14 +356,14 @@ C'est à cette fin que des communistes de diverses nationalités se sont réunis
             grodle_letters = ''
             grodle_emojis = ''
             for i in range(len(word)):
-                grodle_letters += ' '+ word[i] + ' '
+                grodle_letters += f':regional_indicator_{word[i].lower()}:'
                 if word[i] == grodle[i]:
                     grodle_emojis += '🟩'
                 elif word[i] in grodle:
                     grodle_emojis += '🟨'
                 else:
                     grodle_emojis += '⬛'
-            await message.reply(f"{word} n'est pas le bon mot!\n`{grodle_letters}`\n{grodle_emojis}")
+            await message.reply(f"{word} n'est pas le bon mot!\n{grodle_letters}\n{grodle_emojis}")
 
         self.save_memory()
 
