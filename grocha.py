@@ -147,7 +147,7 @@ class GrochaGuild:
                         await word_callback(message, message_split)
                         break
                 if not word_callback:
-                    await message.channel.send("MAOU?")
+                    await message.reply("MAOU?")
             else: # Look for autoreactions
                 for word in message_split:
                     if word in self.memory["autoreact"]:
@@ -187,10 +187,10 @@ class GrochaGuild:
             members = [message.author]
 
         lick = self.emoji_to_string(self.get_emoji_by_name('lick'))
-        message = await message.channel.send(f"{lick} **{f' {lick} '.join(list(map(lambda m: m.name, members)))}** {lick}")
+        message = await message.reply(f"{lick} **{f' {lick} '.join(list(map(lambda m: m.name, members)))}** {lick}")
 
     async def on_message_emojis(self, message, message_split):
-        response = await message.channel.send('Emojis...')
+        response = await message.reply('Emojis...')
         emojis = list(map(lambda e : {"emoji": e, "score": 0, "string": self.emoji_to_string(e)}, self.server.emojis))
         async def update_emojis_response(final = False):
             # Sort emojis from most to least used
@@ -235,11 +235,11 @@ class GrochaGuild:
         )
         waiting_time = weekend_date - current_date
         if waiting_time <= timedelta(0):
-            await message.channel.send(f"MAOU! {self.emoji_to_string(self.grant_emoji)} (c'est le weekend!)")
+            await message.reply(f"MAOU! {self.emoji_to_string(self.grant_emoji)} (c'est le weekend!)")
         elif waiting_time <= timedelta(hours = 1):
-            await message.channel.send(f"MAOU... :eyes: (plus que {waiting_time} avant le weekend...)")
+            await message.reply(f"MAOU... :eyes: (plus que {waiting_time} avant le weekend...)")
         else:
-            await message.channel.send(f"MAOU... :disappointed: (encore {waiting_time} avant le weekend...)")
+            await message.reply(f"MAOU... :disappointed: (encore {waiting_time} avant le weekend...)")
 
     async def on_message_autoreact(self, message, message_split):
         word_regex = "^\\w+$"
@@ -317,10 +317,10 @@ class GrochaGuild:
             return f"`{day_name[date.weekday()]}:`{get_weather_desc(weather_block)}"
         response += "\n" + " - ".join([get_weather_for_day(day) for day in range(min(6, len(weather['daily'])))])
 
-        await message.channel.send(response)
+        await message.reply(response)
 
     async def on_message_revolution(self, message, message_split):
-        await message.channel.send(f'''MAOU! {self.emoji_to_string("com")}
+        await message.reply(f'''MAOU! {self.emoji_to_string("com")}
 ```
 Un spectre hante l'Europe : le spectre du communisme. Toutes les puissances de la vieille Europe se sont unies en une Sainte-Alliance pour traquer ce spectre : le pape et le tsar, Metternich et Guizot, les radicaux de France et les policiers d'Allemagne.
 
@@ -341,17 +341,17 @@ C'est à cette fin que des communistes de diverses nationalités se sont réunis
     async def on_message_version(self, message, message_split):
         sha1 = subprocess.run(['git', 'rev-parse', 'HEAD'], capture_output=True, text=True).stdout.strip()
         date = subprocess.run(['git', 'log', '-1', '--format=%cd'], capture_output=True, text=True).stdout.strip()
-        await message.channel.send(f'MAOU :date:\nSha1: `{sha1}`\nDate: `{date}`')
+        await message.reply(f'MAOU :date:\nSha1: `{sha1}`\nDate: `{date}`')
 
     async def on_message_update(self, message, message_split):
         rebase_process = subprocess.run(["git", "pull", "--rebase", "--autostash"], text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         log_process = subprocess.run(["git", "log", "-10", "--pretty=format:%h - %s (%cr) <%an>"], text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
         result_string = f'MAOU! _(updating myself!)_\n**Results**\n```{rebase_process.stdout.strip()}\n\n{log_process.stdout.strip()}```'
-        await message.channel.send(result_string[:2000])
+        await message.reply(result_string[:2000])
 
     async def on_message_restart(self, message, message_split):
-        await message.channel.send(f'MAOU~ _(takin a short nap bruh)_')
+        await message.reply(f'MAOU~ _(takin a short nap bruh)_')
         restart_results = subprocess.run(['systemctl', '--user', 'restart', 'bot-grocha'], capture_output=True, text=True).stderr.strip()
 
 
