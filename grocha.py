@@ -339,21 +339,31 @@ C'est à cette fin que des communistes de diverses nationalités se sont réunis
         words = list(filter(lambda w : not w.startswith('<@!') and w != "grodle", message_split))
         if len(words) != 1:
             return await message.reply("Proposez un (seul) mot !")
-        word = words[0].strip('|')
+        word = words[0].strip('|').upper()
+        grodle = self.memory.get("grodle", "").upper()
 
-        if not "grodle" in self.memory:
+        if grodle == "":
             self.memory["grodle"] = word
             channel = message.channel
             await message.delete()
             await channel.send(f'Nouveau mot de {len(word)} lettres à deviner !')
-        elif len(word) != len(self.memory["grodle"]):
+        elif len(word) != len(grodle):
             await message.reply(f'Le mot actuel contient {len(self.memory["grodle"])} lettres !')
-        elif word == self.memory["grodle"]:
+        elif word == grodle:
             self.memory.pop("grodle")
             await message.reply(f'Bien joué {message.author.mention} !')
         else:
-
-            await message.reply(f"{word} n'est pas le bon mot!")
+            grodle_letters = ''
+            grodle_emojis = ''
+            for i in range(len(word)):
+                grodle_letters += ' '+ word[i] + ' '
+                if word[i] == grodle[i]:
+                    grodle_emojis += '🟩'
+                elif word[i] in grodle:
+                    grodle_emojis += '🟨'
+                else:
+                    grodle_emojis += '⬛'
+            await message.reply(f"{word} n'est pas le bon mot!\n`{grodle_letters}`\n{grodle_emojis}")
 
         self.save_memory()
 
