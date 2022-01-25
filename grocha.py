@@ -339,7 +339,7 @@ C'est à cette fin que des communistes de diverses nationalités se sont réunis
         words = list(filter(lambda w : not w.startswith('<@!') and w != "grodle", message_split))
         if len(words) != 1:
             return await message.reply("Proposez un (seul) mot !")
-        word = words[0]
+        word = words[0].strip('|')
 
         if not "grodle" in self.memory:
             self.memory["grodle"] = word
