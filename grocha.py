@@ -336,7 +336,7 @@ C'est à cette fin que des communistes de diverses nationalités se sont réunis
 ```''')
 
     async def on_message_grodle(self, message, message_split):
-        words = list(filter(lambda w : not w.startswith('<@!') and w != "grodle", message_split))
+        words = list(filter(lambda w : not w.startswith('<@') and w != "grodle", message_split))
         if len(words) != 1:
             return await message.reply("Proposez un (seul) mot !")
         word = remove_accents(words[0].strip('|').lower()).upper()
