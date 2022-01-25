@@ -337,6 +337,19 @@ C'est à cette fin que des communistes de diverses nationalités se sont réunis
 
     async def on_message_grodle(self, message, message_split):
         words = list(filter(lambda w : not w.startswith('<@') and w != "grodle", message_split))
+        grodle = self.memory.get("grodle", "")
+
+        # There's an active grodle and the command has no word: display hints
+        if grodle != "" and len(words) < 1:
+            grodle_known_letters = self.memory.get("grodle_known_letters", {})
+            grodle_letters = ''
+            for i in range(len(grodle)):
+                if str(i) in grodle_known_letters:
+                    grodle_letters += f':regional_indicator_{grodle[i].lower()}:'
+                else:
+                    grodle_letters += ':question:'
+            return await message.reply(f':ledger: Voici les lettres connues pour le moment :\n{grodle_letters}')
+
         if len(words) != 1:
             return await message.reply("Proposez un (seul) mot !")
         word = remove_accents(words[0].strip('|').lower()).upper()
@@ -344,8 +357,6 @@ C'est à cette fin que des communistes de diverses nationalités se sont réunis
         max_letter_count = 8
         if len(word) > max_letter_count:
             return await message.reply(f"Les mots de plus de {max_letter_count} lettres (ici {len(word)}) ne sont pas acceptés.")
-
-        grodle = self.memory.get("grodle", "").upper()
 
         if grodle == "":
             self.memory["grodle"] = word
@@ -361,6 +372,7 @@ C'est à cette fin que des communistes de diverses nationalités se sont réunis
                 grodle_letters += f':regional_indicator_{word[i].lower()}:'
                 if word[i] == grodle[i]:
                     grodle_emojis += ':green_square: '
+                    self.memory.setdefault("grodle_known_letters", {})[str(i)] = True
                 elif word[i] in grodle:
                     grodle_emojis += ':yellow_square:'
                 else:
@@ -368,6 +380,7 @@ C'est à cette fin que des communistes de diverses nationalités se sont réunis
 
             if word == grodle:
                 self.memory.pop("grodle")
+                self.memory.pop("grodle_known_letters")
                 await message.reply(f':tada: Bien joué {message.author.mention} !\n{grodle_letters}\n{grodle_emojis}')
             else:
                 await message.reply(f":disappointed: {word} n'est pas le bon mot !\n{grodle_letters}\n{grodle_emojis}")
