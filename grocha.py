@@ -354,9 +354,6 @@ C'est à cette fin que des communistes de diverses nationalités se sont réunis
             await channel.send(f'Nouveau mot de {len(word)} lettres à deviner !')
         elif len(word) != len(grodle):
             await message.reply(f'Le mot actuel contient {len(self.memory["grodle"])} lettres !')
-        elif word == grodle:
-            self.memory.pop("grodle")
-            await message.reply(f'Bien joué {message.author.mention} !')
         else:
             grodle_letters = ''
             grodle_emojis = ''
@@ -368,7 +365,12 @@ C'est à cette fin que des communistes de diverses nationalités se sont réunis
                     grodle_emojis += '🟨'
                 else:
                     grodle_emojis += '⬛'
-            await message.reply(f"{word} n'est pas le bon mot!\n{grodle_letters}\n{grodle_emojis}")
+
+            if word == grodle:
+                self.memory.pop("grodle")
+                await message.reply(f'Bien joué {message.author.mention} !\n{grodle_letters}\n{grodle_emojis}')
+            else:
+                await message.reply(f"{word} n'est pas le bon mot !\n{grodle_letters}\n{grodle_emojis}")
 
         self.save_memory()
 
