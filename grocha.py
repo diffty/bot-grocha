@@ -368,8 +368,9 @@ C'est à cette fin que des communistes de diverses nationalités se sont réunis
         if grodle == "":
             self.memory["grodle"] = word
             channel = message.channel
+            author = message.author
             await message.delete()
-            await channel.send(f':mag: Nouveau mot de {len(word)} lettres à deviner !')
+            await channel.send(f':mag: {author.mention} propose un nouveau mot de {len(word)} lettres à deviner !')
         elif len(word) != len(grodle):
             await message.reply(f':confused: Le mot actuel contient {len(self.memory["grodle"])} lettres !')
         else:
