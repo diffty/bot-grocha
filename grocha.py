@@ -368,6 +368,10 @@ C'est à cette fin que des communistes de diverses nationalités se sont réunis
         if len(word) > max_letter_count:
             return await message.reply(f"Les mots de plus de {max_letter_count} lettres (ici {len(word)}) ne sont pas acceptés.")
 
+        word_regex = "^[A-Z]+$"
+        if not re.search(word_regex, word):
+            return await message.reply(f"Le mot contient des caractères interdits")
+
         if grodle == "":
             self.memory["grodle"] = word
             channel = message.channel
