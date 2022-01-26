@@ -14,6 +14,7 @@ import config
 def remove_accents(str):
     return (str.lower()
         .replace("à","a")
+        .replace("ç","c")
         .replace("é","e")
         .replace("è","e")
         .replace("ê","e")
