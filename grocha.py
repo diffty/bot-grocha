@@ -1,3 +1,4 @@
+from collections import defaultdict
 import json
 import random
 import re
@@ -383,16 +384,24 @@ C'est à cette fin que des communistes de diverses nationalités se sont réunis
             await message.reply(f':confused: Le mot actuel contient {len(self.memory["grodle"])} lettres !')
         else:
             grodle_letters = ''
-            grodle_emojis = ''
+            grodle_emojis = [None] * len(word)
+            letter_count = defaultdict(lambda: 0)
             for i in range(len(word)):
                 grodle_letters += f':regional_indicator_{word[i].lower()}:'
                 if word[i] == grodle[i]:
-                    grodle_emojis += ':green_square:'
+                    grodle_emojis[i] = ':green_square:'
                     self.memory.setdefault("grodle_known_letters", {})[str(i)] = True
-                elif word[i] in grodle:
-                    grodle_emojis += ':yellow_square:'
-                else:
-                    grodle_emojis += ':black_large_square:'
+                    letter_count[word[i]] += 1
+
+            for i in range(len(word)):
+                if not grodle_emojis[i]:
+                    if word[i] in grodle and grodle.count(word[i]) > letter_count[word[i]]:
+                        grodle_emojis[i] = ':yellow_square:'
+                        letter_count[word[i]] += 1
+                    else:
+                        grodle_emojis[i] = ':black_large_square:'
+
+            grodle_emojis = ''.join(grodle_emojis)
 
             if word == grodle:
                 self.memory.pop("grodle")
