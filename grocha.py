@@ -144,6 +144,9 @@ class GrochaGuild:
                     await self.deal_with_exception(e, message.channel)
 
     async def on_message(self, message):
+        if message.author.id == self.user.id:
+            return # Avoid loops
+
         try:
             message_split = remove_accents(message.content).split()
             if self.user.mentioned_in(message): # Look for callbacks
