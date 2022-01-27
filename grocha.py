@@ -406,7 +406,7 @@ C'est à cette fin que des communistes de diverses nationalités se sont réunis
             if word == grodle:
                 self.memory.pop("grodle")
                 self.memory.pop("grodle_known_letters")
-                await message.reply(f':tada: Bien joué {message.author.mention} !\n{grodle_letters}\n{grodle_emojis}')
+                await message.reply(f':tada: Bien joué {message.author.mention} !\n{grodle_letters}\n{grodle_emojis}\nPour proposer un nouveau mot : `@{self.user.name} grodle ||mot||`')
             else:
                 await message.reply(f":disappointed: {word} n'est pas le bon mot !\n{grodle_letters}\n{grodle_emojis}")
 
