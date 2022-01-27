@@ -6,23 +6,20 @@ import subprocess
 import sys
 import traceback
 from datetime import datetime, timedelta, timezone
+import unicodedata
 from urllib import request
 
 import discord
 
 import config
 
+native_emoji_regex = "^[\u263a-\U0001ffff]$"
+custom_emoji_regex = "^<a?:(\\w+):(\\d+)>$"
+
 def remove_accents(str):
-    return (str.lower()
-        .replace("à","a")
-        .replace("â","a")
-        .replace("ç","c")
-        .replace("é","e")
-        .replace("è","e")
-        .replace("ê","e")
-        .replace("î","i")
-        .replace("ï","i")
-        .replace("ù","u"))
+    return "".join(map(lambda c:
+        c if re.search(native_emoji_regex, c)
+        else unicodedata.normalize('NFKD', c).encode('ASCII', 'ignore').decode('ascii'), str))
 
 class GrochaGuild:
     def __init__(self, bot, guild):
@@ -75,11 +72,9 @@ class GrochaGuild:
         return f'<{"a" if emoji.animated else ""}:{emoji.name}:{str(emoji.id)}>'
 
     def is_emoji_string(self, emoji_str):
-        native_emoji_regex = "^[\u263a-\U0001ffff]$"
         if re.search(native_emoji_regex, emoji_str):
             return True
 
-        custom_emoji_regex = "^<a?:(\\w+):(\\d+)>$"
         match = re.search(custom_emoji_regex, emoji_str)
         if match:
             custom_emoji = self.get_emoji_by_name(match.group(1))
