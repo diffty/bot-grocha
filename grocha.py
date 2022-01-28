@@ -16,6 +16,7 @@ import config
 
 native_emoji_regex = "^[\u263a-\U0001ffff]$"
 custom_emoji_regex = "^<a?:(\\w+):(\\d+)>$"
+hairspace = '\u200a'
 
 def remove_accents(str):
     return "".join(map(lambda c:
@@ -350,27 +351,20 @@ C'est à cette fin que des communistes de diverses nationalités se sont réunis
 
         # There's an active grodle and the command has no word: display hints
         if grodle != "" and len(words) < 1:
-            grodle_known_letters = self.memory.get("grodle_known_letters", {})
-            grodle_known_absent_letters = self.memory.get("grodle_known_absent_letters", {})
-
             # Compute known letters
-            grodle_letters = ''
-            for i in range(len(grodle)):
-                if str(i) in grodle_known_letters:
-                    grodle_letters += f':regional_indicator_{grodle[i].lower()}:'
-                else:
-                    grodle_letters += ':question:'
+            grodle_known_letters = self.memory.get("grodle_known_letters", {})
+            grodle_letters = hairspace.join(map(lambda t:
+                f':regional_indicator_{t[1].lower()}:' if str(t[0]) in grodle_known_letters
+                else ':question:', enumerate(grodle)))
 
             # Compute possible letters
-            grodle_possible_letters = ''
-            for l in string.ascii_uppercase:
-                if not l in grodle_known_absent_letters:
-                    grodle_possible_letters += l
+            grodle_known_absent_letters = self.memory.get("grodle_known_absent_letters", {})
+            grodle_possible_letters = ''.join(filter(lambda l: not l in grodle_known_absent_letters, string.ascii_uppercase))
 
             # Create hint message
             reply_message = f':ledger: Voici les lettres connues pour le moment :\n{grodle_letters}'
             if len(grodle_possible_letters) <= 16:
-                grodle_possible_letters = ''.join(map(lambda c: f':regional_indicator_{c.lower()}:', grodle_possible_letters))
+                grodle_possible_letters = hairspace.join(map(lambda c: f':regional_indicator_{c.lower()}:', grodle_possible_letters))
                 reply_message += f'\nVoici les lettres possibles :\n{grodle_possible_letters}'
             return await message.reply(reply_message)
 
@@ -395,11 +389,9 @@ C'est à cette fin que des communistes de diverses nationalités se sont réunis
         elif len(word) != len(grodle):
             await message.reply(f':confused: Le mot actuel contient {len(self.memory["grodle"])} lettres !')
         else:
-            grodle_letters = ''
             grodle_emojis = [None] * len(word)
             letter_count = defaultdict(lambda: 0)
             for i in range(len(word)):
-                grodle_letters += f':regional_indicator_{word[i].lower()}:'
                 if word[i] == grodle[i]:
                     grodle_emojis[i] = ':green_square:'
                     self.memory.setdefault("grodle_known_letters", {})[str(i)] = True
@@ -417,7 +409,8 @@ C'est à cette fin que des communistes de diverses nationalités se sont réunis
                     if not word[i] in grodle:
                         self.memory.setdefault("grodle_known_absent_letters", {})[word[i]] = True
 
-            grodle_emojis = ''.join(grodle_emojis)
+            grodle_letters = hairspace.join(map(lambda c: f':regional_indicator_{c.lower()}:', word))
+            grodle_emojis = hairspace.join(grodle_emojis)
 
             if word == grodle:
                 self.memory.pop("grodle")
