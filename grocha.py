@@ -2,6 +2,7 @@ from collections import defaultdict
 import json
 import random
 import re
+import string
 import subprocess
 import sys
 import traceback
@@ -350,13 +351,28 @@ C'est à cette fin que des communistes de diverses nationalités se sont réunis
         # There's an active grodle and the command has no word: display hints
         if grodle != "" and len(words) < 1:
             grodle_known_letters = self.memory.get("grodle_known_letters", {})
+            grodle_known_absent_letters = self.memory.get("grodle_known_absent_letters", {})
+
+            # Compute known letters
             grodle_letters = ''
             for i in range(len(grodle)):
                 if str(i) in grodle_known_letters:
                     grodle_letters += f':regional_indicator_{grodle[i].lower()}:'
                 else:
                     grodle_letters += ':question:'
-            return await message.reply(f':ledger: Voici les lettres connues pour le moment :\n{grodle_letters}')
+
+            # Compute possible letters
+            grodle_possible_letters = ''
+            for l in string.ascii_uppercase:
+                if not l in grodle_known_absent_letters:
+                    grodle_possible_letters += l
+
+            # Create hint message
+            reply_message = f':ledger: Voici les lettres connues pour le moment :\n{grodle_letters}'
+            if len(grodle_possible_letters) <= 16:
+                grodle_possible_letters = ''.join(map(lambda c: f':regional_indicator_{c.lower()}:', grodle_possible_letters))
+                reply_message += f'\nVoici les lettres possibles :\n{grodle_possible_letters}'
+            return await message.reply(reply_message)
 
         if len(words) != 1:
             return await message.reply("Proposez un (seul) mot !")
@@ -397,11 +413,16 @@ C'est à cette fin que des communistes de diverses nationalités se sont réunis
                     else:
                         grodle_emojis[i] = ':black_large_square:'
 
+                    # This letter is definitely not in the grodle
+                    if not word[i] in grodle:
+                        self.memory.setdefault("grodle_known_absent_letters", {})[word[i]] = True
+
             grodle_emojis = ''.join(grodle_emojis)
 
             if word == grodle:
                 self.memory.pop("grodle")
                 self.memory.pop("grodle_known_letters")
+                self.memory.pop("grodle_known_absent_letters")
                 await message.reply(f':tada: Bien joué {message.author.mention} !\n{grodle_letters}\n{grodle_emojis}\nPour proposer un nouveau mot : `@{self.user.name} grodle ||mot||`')
             else:
                 await message.reply(f":disappointed: {word} n'est pas le bon mot !\n{grodle_letters}\n{grodle_emojis}")
