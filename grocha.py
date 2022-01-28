@@ -383,8 +383,7 @@ C'est à cette fin que des communistes de diverses nationalités se sont réunis
             grodle_emojis = [None] * len(word)
             letter_count = defaultdict(lambda: 0)
             for i in range(len(word)):
-                # Invisible space character between letter emojis to avoid flags replacing some letters
-                grodle_letters += f':regional_indicator_{word[i].lower()}:\u200b'
+                grodle_letters += f':regional_indicator_{word[i].lower()}:'
                 if word[i] == grodle[i]:
                     grodle_emojis[i] = ':green_square:'
                     self.memory.setdefault("grodle_known_letters", {})[str(i)] = True
