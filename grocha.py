@@ -413,9 +413,9 @@ C'est à cette fin que des communistes de diverses nationalités se sont réunis
             grodle_emojis = hairspace.join(grodle_emojis)
 
             if word == grodle:
-                self.memory.pop("grodle")
-                self.memory.pop("grodle_known_letters")
-                self.memory.pop("grodle_known_absent_letters")
+                self.memory.pop("grodle", None)
+                self.memory.pop("grodle_known_letters", None)
+                self.memory.pop("grodle_known_absent_letters", None)
                 await message.reply(f':tada: Bien joué {message.author.mention} !\n{grodle_letters}\n{grodle_emojis}\nPour proposer un nouveau mot : `@{self.user.name} grodle ||mot||`')
             else:
                 await message.reply(f":disappointed: {word} n'est pas le bon mot !\n{grodle_letters}\n{grodle_emojis}")
