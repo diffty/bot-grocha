@@ -23,6 +23,9 @@ def remove_accents(str):
         c if re.search(native_emoji_regex, c)
         else unicodedata.normalize('NFKD', c).encode('ASCII', 'ignore').decode('ascii'), str))
 
+def json_query(url):
+    return json.loads(request.urlopen(url).read())
+
 class GrochaGuild:
     def __init__(self, bot, guild):
         self.bot = bot
@@ -269,8 +272,7 @@ class GrochaGuild:
 
     async def on_message_meteo(self, message, message_split):
         # TODO: allow different places (currently only Paris) but no idea how to make that simple and systemic
-        weather_text = request.urlopen(f"https://api.openweathermap.org/data/2.5/onecall?lat=48.85341&lon=2.3488&appid={config.OPENWEATHER_KEY}&units=metric&lang=fr").read()
-        weather = json.loads(weather_text)
+        weather = json_query(f"https://api.openweathermap.org/data/2.5/onecall?lat=48.85341&lon=2.3488&appid={config.OPENWEATHER_KEY}&units=metric&lang=fr")
         current_time = weather['current']['dt']
         current_date = datetime.fromtimestamp(current_time)
 
@@ -351,8 +353,7 @@ C'est à cette fin que des communistes de diverses nationalités se sont réunis
 
         def find_word_in_wiktionary(word):
             try:
-                wik_search_text = request.urlopen(f"https://fr.wiktionary.org/w/api.php?action=query&list=search&srsearch={word}&format=json").read()
-                wik_search = json.loads(wik_search_text)
+                wik_search = json_query(f"https://fr.wiktionary.org/w/api.php?action=query&list=search&srsearch={word}&format=json")
                 for result in wik_search["query"]["search"]:
                     if remove_accents(result["title"]) == word.lower():
                         return f"https://fr.wiktionary.org/wiki/{result['title']}"
