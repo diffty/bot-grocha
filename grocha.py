@@ -349,6 +349,17 @@ C'est à cette fin que des communistes de diverses nationalités se sont réunis
         words = list(filter(lambda w : not w.startswith('<@') and w != "grodle", message_split))
         grodle = self.memory.get("grodle", "")
 
+        def find_word_in_wiktionary(word):
+            try:
+                wik_search_text = request.urlopen(f"https://fr.wiktionary.org/w/api.php?action=query&list=search&srsearch={word}&format=json").read()
+                wik_search = json.loads(wik_search_text)
+                for result in wik_search["query"]["search"]:
+                    if remove_accents(result["title"]) == word.lower():
+                        return f"https://fr.wiktionary.org/wiki/{result['title']}"
+            except Exception:
+                return None
+            return None
+
         # There's an active grodle and the command has no word: display hints
         if grodle != "" and len(words) < 1:
             # Compute known letters
@@ -389,7 +400,12 @@ C'est à cette fin que des communistes de diverses nationalités se sont réunis
             channel = message.channel
             author = message.author
             await message.delete()
-            await channel.send(f':mag: {author.mention} propose un nouveau mot de {len(word)} lettres à deviner !')
+            reply_message = f":mag: {author.mention} propose un nouveau mot de {len(word)} lettres à deviner !"
+            if find_word_in_wiktionary(word) != None:
+                reply_message += f" Je l'ai trouvé dans le dictionnaire !"
+            else:
+                reply_message += f" Je ne l'ai pas trouvé dans le dictionnaire..."
+            await channel.send(reply_message)
         elif len(word) != len(grodle):
             await message.reply(f':confused: Le mot actuel contient {len(self.memory["grodle"])} lettres !')
         else:
@@ -420,7 +436,12 @@ C'est à cette fin que des communistes de diverses nationalités se sont réunis
                 self.memory.pop("grodle", None)
                 self.memory.pop("grodle_known_letters", None)
                 self.memory.pop("grodle_known_absent_letters", None)
-                await message.reply(f':tada: Bien joué {message.author.mention} !\n{grodle_letters}\n{grodle_emojis}\nPour proposer un nouveau mot : `@{self.user.name} grodle ||mot||`')
+                reply_message = f":tada: Bien joué {message.author.mention} !\n{grodle_letters}\n{grodle_emojis}"
+                wik_url = find_word_in_wiktionary(word)
+                if wik_url != None:
+                    reply_message += f"\n(<{wik_url}>)"
+                reply_message += f"\nPour proposer un nouveau mot : `@{self.user.name} grodle ||mot||`"
+                await message.reply(reply_message)
             else:
                 await message.reply(f":disappointed: {word} n'est pas le bon mot !\n{grodle_letters}\n{grodle_emojis}")
 
