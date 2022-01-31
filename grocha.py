@@ -357,15 +357,19 @@ C'est à cette fin que des communistes de diverses nationalités se sont réunis
                 f':regional_indicator_{t[1].lower()}:' if str(t[0]) in grodle_known_letters
                 else ':question:', enumerate(grodle)))
 
-            # Compute possible letters
-            grodle_known_absent_letters = self.memory.get("grodle_known_absent_letters", {})
-            grodle_possible_letters = ''.join(filter(lambda l: not l in grodle_known_absent_letters, string.ascii_uppercase))
-
             # Create hint message
             reply_message = f':ledger: Voici les lettres connues pour le moment :\n{grodle_letters}'
-            if len(grodle_possible_letters) <= 16:
+            grodle_known_absent_letters = self.memory.get("grodle_known_absent_letters", {})
+            if len(grodle_known_absent_letters) > 10:
+                # Show possible letters
+                grodle_possible_letters = ''.join(filter(lambda l: not l in grodle_known_absent_letters, string.ascii_uppercase))
                 grodle_possible_letters = hairspace.join(map(lambda c: f':regional_indicator_{c.lower()}:', grodle_possible_letters))
                 reply_message += f'\nVoici les lettres possibles :\n{grodle_possible_letters}'
+            elif len(grodle_known_absent_letters) > 0:
+                # Show absent letters
+                grodle_impossible_letters = hairspace.join(map(lambda c: f':regional_indicator_{c.lower()}:', grodle_known_absent_letters.keys()))
+                reply_message += f'\nVoici les lettres absentes du mot :\n{grodle_impossible_letters}'
+
             return await message.reply(reply_message)
 
         if len(words) != 1:
