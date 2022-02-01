@@ -388,7 +388,7 @@ C'est à cette fin que des communistes de diverses nationalités se sont réunis
             return await message.reply("Proposez un (seul) mot !")
         word = remove_accents(words[0].strip('|')).upper()
 
-        max_letter_count = 8
+        max_letter_count = 10
         if len(word) > max_letter_count:
             return await message.reply(f"Les mots de plus de {max_letter_count} lettres (ici {len(word)}) ne sont pas acceptés.")
 
