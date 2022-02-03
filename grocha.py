@@ -5,6 +5,7 @@ import re
 import string
 import subprocess
 import sys
+import time
 import traceback
 from datetime import datetime, timedelta, timezone
 import unicodedata
@@ -38,6 +39,8 @@ class GrochaGuild:
         self.chan_main = self.get_channel_by_name(config.MAIN_CHANNEL_NAME)
         self.chan_debug = self.get_channel_by_name(config.DEBUG_CHANNEL_NAME)
         self.role_main = self.get_role_by_name(config.MAIN_ROLE_NAME)
+        self.profile_time = defaultdict(lambda: 0)
+        self.profile_count = defaultdict(lambda: 0)
 
         if not self.role_main:
             raise Exception(f"<!!> Can't find role named {config.MAIN_ROLE_NAME}")
@@ -162,7 +165,10 @@ class GrochaGuild:
                 for word in message_split:
                     word_callback = getattr(self, "on_message_" + word, None)
                     if word_callback:
+                        time_start = time.perf_counter()
                         await word_callback(message, message_split)
+                        self.profile_time[word] += time.perf_counter() - time_start
+                        self.profile_count[word] += 1
                         break
                 if not word_callback:
                     await message.reply("MAOU?")
@@ -474,6 +480,14 @@ C'est à cette fin que des communistes de diverses nationalités se sont réunis
         sha1 = subprocess.run(['git', 'rev-parse', 'HEAD'], capture_output=True, text=True).stdout.strip()
         date = subprocess.run(['git', 'log', '-1', '--format=%cd'], capture_output=True, text=True).stdout.strip()
         await message.reply(f'MAOU :date:\nSha1: `{sha1}`\nDate: `{date}`')
+
+    async def on_message_profile(self, message, message_split):
+        reply_message = 'Profile:\n'
+        for key in self.profile_time:
+            avg_time = self.profile_time[key] / self.profile_count[key]
+            reply_message += f"{key.capitalize()} : {avg_time:.3f}\n"
+
+        await message.reply(reply_message)
 
     async def on_message_update(self, message, message_split):
         rebase_process = subprocess.run(["git", "pull", "--rebase", "--autostash"], text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
