@@ -147,12 +147,17 @@ class GrochaGuild:
                     await self.deal_with_exception(e, message.channel)
 
     async def on_message(self, message):
-        if message.author.id == self.user.id:
+        message_is_from_bot = message.author.id == self.user.id
+        if message_is_from_bot:
             return # Avoid loops
+
+        message_is_replying_to_bot = message.reference and message.reference.resolved and message.reference.resolved.author.id == self.user.id
 
         try:
             message_split = remove_accents(message.content).split()
-            if self.user.mentioned_in(message): # Look for callbacks
+            if (self.user.mentioned_in(message) # Command mentioning the bot?
+            and not message.mention_everyone # No it's mentioning everyone
+            and not message_is_replying_to_bot): # No it's just replying
                 word_callback = None
                 for word in message_split:
                     word_callback = getattr(self, "on_message_" + word, None)
