@@ -205,7 +205,7 @@ class GrochaGuild:
             members = [message.author]
 
         lick = self.emoji_to_string(self.get_emoji_by_name('lick'))
-        message = await message.reply(f"{lick} **{f' {lick} '.join(list(map(lambda m: m.name, members)))}** {lick}")
+        message = await message.reply(f"{lick} {f' {lick} '.join(list(map(lambda m: m.mention, members)))} {lick}")
 
     async def on_message_emojis(self, message, message_split):
         response = await message.reply('Emojis...')
