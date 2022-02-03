@@ -208,7 +208,7 @@ class GrochaGuild:
         message = await message.reply(f"{lick} {f' {lick} '.join(list(map(lambda m: m.mention, members)))} {lick}")
 
     async def on_message_emojis(self, message, message_split):
-        response = await message.reply('Emojis...')
+        response = await message.reply('E-MAOU-jis...')
         emojis = list(map(lambda e : {"emoji": e, "score": 0, "string": self.emoji_to_string(e)}, self.server.emojis))
         async def update_emojis_response(final = False):
             # Filter emojis with no score
@@ -224,9 +224,9 @@ class GrochaGuild:
             sorted_emojis = "-".join(sorted_emojis)
 
             if final:
-                sorted_emojis = "Emojis :\n" + sorted_emojis
+                sorted_emojis = "E-MAOU-jis :\n" + sorted_emojis
             else:
-                sorted_emojis = "Emojis : (calcul en cours)\n" + sorted_emojis
+                sorted_emojis = "E-MAOU-jis : (calcul en cours)\n" + sorted_emojis
 
             await response.edit(content = sorted_emojis[:2000])
 
