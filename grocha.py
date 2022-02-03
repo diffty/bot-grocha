@@ -234,13 +234,22 @@ class GrochaGuild:
         else:
             channels = self.get_text_channels()
 
-        after = datetime.now() - timedelta(days = 180)
+        valid_users = message.mentions
+        if len(valid_users) <= 1: # Only bot
+            valid_users = self.server.members
+        valid_users = list(filter(lambda u: u != self.user, valid_users)) # Always remove bot
+
+        next_update_dt = datetime.now()
         for channel in channels:
-            await update_emojis_response()
-            async for m in channel.history(limit = 1000, after = after, oldest_first = False):
-                if m.author != self.user:
+            async for m in channel.history(limit = 1000, oldest_first = False):
+                if next_update_dt <= datetime.now():
+                    next_update_dt = datetime.now() + timedelta(seconds = 1)
+                    await update_emojis_response()
+                if m.author in valid_users:
                     for e in emojis:
-                        e["score"] += sum(map(lambda r : r.count, filter(lambda r : r.emoji == e["emoji"], m.reactions))) + m.content.count(e["string"])
+                        e["score"] += m.content.count(e["string"]) # Count emojis in text
+                        for r in (r for r in m.reactions if e["emoji"] == r.emoji): # Count reactions
+                            e["score"] += sum(u in valid_users for u in await r.users().flatten())
 
         await update_emojis_response(True)
 
