@@ -211,8 +211,11 @@ class GrochaGuild:
         response = await message.reply('Emojis...')
         emojis = list(map(lambda e : {"emoji": e, "score": 0, "string": self.emoji_to_string(e)}, self.server.emojis))
         async def update_emojis_response(final = False):
+            # Filter emojis with no score
+            filtered_emojis = filter(lambda e: e["score"] > 0, emojis)
+
             # Sort emojis from most to least used
-            sorted_emojis = sorted(emojis, key = lambda e : -e["score"])
+            sorted_emojis = sorted(filtered_emojis, key = lambda e : -e["score"])
 
             # Put emojis with their scores into strings
             sorted_emojis = list(map(lambda e : f'{self.emoji_to_string(e["emoji"])}`{str(e["score"])}`', sorted_emojis))
