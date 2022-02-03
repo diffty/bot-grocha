@@ -248,11 +248,11 @@ class GrochaGuild:
                 if next_update_dt <= datetime.now():
                     next_update_dt = datetime.now() + timedelta(seconds = 1)
                     await update_emojis_response()
-                if m.author in valid_users:
-                    for e in emojis:
+                for e in emojis:
+                    if m.author in valid_users:
                         e["score"] += m.content.count(e["string"]) # Count emojis in text
-                        for r in (r for r in m.reactions if e["emoji"] == r.emoji): # Count reactions
-                            e["score"] += sum(u in valid_users for u in await r.users().flatten())
+                    for r in (r for r in m.reactions if e["emoji"] == r.emoji): # Count reactions
+                        e["score"] += sum(u in valid_users for u in await r.users().flatten())
 
         await update_emojis_response(True)
 
