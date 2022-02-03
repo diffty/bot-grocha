@@ -229,6 +229,8 @@ class GrochaGuild:
 
         if "here" in message_split:
             channels = [message.channel]
+        elif len(message.channel_mentions) > 0:
+            channels = message.channel_mentions
         else:
             channels = self.get_text_channels()
 
