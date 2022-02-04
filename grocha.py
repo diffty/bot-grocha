@@ -303,9 +303,13 @@ class GrochaGuild:
         if city_match:
             geo = json_query(f"https://api.openweathermap.org/geo/1.0/direct?q={parse.quote_plus(city_match.group(1))}&limit=1&appid={config.OPENWEATHER_KEY}")
             if geo:
-                lat = geo[0]['lat']
-                lon = geo[0]['lon']
-                city_name = geo[0]['local_names']['fr'] if 'local_names' in geo[0] else geo[0]['name']
+                geo = geo[0]
+                lat = geo['lat']
+                lon = geo['lon']
+                city_name = geo['name']
+                if 'local_names' in geo and 'fr' in geo['local_names']: city_name = geo['local_names']['fr']
+                if 'state' in geo: city_name += ', ' + geo['state']
+                if 'country' in geo: city_name += ', ' + geo['country']
             else:
                 return await message.reply(f":disappointed: Je ne connais pas de ville nommée {city_match.group(1)}")
         else: # Default to Paris
