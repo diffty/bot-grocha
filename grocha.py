@@ -332,7 +332,7 @@ class GrochaGuild:
         # Rain in the next hour
         active_minutely = list(filter(lambda m: m['precipitation'] > 0, weather['minutely']))
         if len(active_minutely) > 0:
-            response += f"\nPluie dans {(active_minutely[0]['dt'] - current_time) / 60} minutes :umbrella:"
+            response += f"\nPluie dans {(active_minutely[0]['dt'] - current_time) / 60:.0f} minutes :umbrella:"
         else:
             response += f"\nPas de pluie prévue dans l'heure :muscle:"
 
