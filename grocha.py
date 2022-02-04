@@ -298,10 +298,10 @@ class GrochaGuild:
     async def on_message_meteo(self, message, message_split):
         # TODO: allow different places (currently only Paris) but no idea how to make that simple and systemic
         weather = json_query(f"https://api.openweathermap.org/data/2.5/onecall?lat=48.85341&lon=2.3488&appid={config.OPENWEATHER_KEY}&units=metric&lang=fr")
-        current_time = weather['current']['dt']
-        current_date = datetime.fromtimestamp(current_time)
         temp_type = 'feels_like'
 
+        def get_datetime(dt):
+            return datetime.fromtimestamp(dt, timezone(timedelta(seconds=weather['timezone_offset'])))
         def is_day_time(dt):
             return len([d for d in weather['daily'] if d['sunrise'] < dt and dt < d['sunset']]) > 0
         def get_night_sky_emoji(dt):
@@ -338,6 +338,9 @@ class GrochaGuild:
         def get_weather_desc(weather_block):
             return f"{get_weather_emoji(weather_block['dt'], weather_block['weather'][0]['id'])}`{get_temp(weather_block[temp_type])}`"
 
+        current_time = weather['current']['dt']
+        current_date = get_datetime(current_time)
+
         response = f"MAOU-téo:"
         response += f"\nEn ce moment ({current_date}): {get_weather_desc(weather['current'])}"
 
@@ -352,7 +355,7 @@ class GrochaGuild:
         response += "\n"
         def get_weather_for_hour(hour):
             weather_block = weather['hourly'][hour]
-            date = datetime.fromtimestamp(weather_block['dt'])
+            date = get_datetime(weather_block['dt'])
             return f"`{format(date.hour, '0>2')}h:`{get_weather_desc(weather_block)}"
         for hour in range(0, min(16, len(weather['hourly'])), 4):
             response += "\n" + " - ".join([get_weather_for_hour(h) for h in range(hour, hour + 4)])
@@ -362,7 +365,7 @@ class GrochaGuild:
         def get_weather_for_day(day):
             day_name = ("Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim")
             weather_block = weather['daily'][day]
-            date = datetime.fromtimestamp(weather_block['dt'])
+            date = get_datetime(weather_block['dt'])
             return f"`{day_name[date.weekday()]}:`{get_weather_desc(weather_block)}"
         response += "\n" + " - ".join([get_weather_for_day(day) for day in range(min(6, len(weather['daily'])))])
 
