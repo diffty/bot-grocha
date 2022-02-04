@@ -12,6 +12,7 @@ import unicodedata
 from urllib import request
 
 import discord
+import pytz
 
 import config
 
@@ -264,7 +265,7 @@ class GrochaGuild:
 
     async def on_message_weekend(self, message, message_split):
         # We are in France, we speak French... OK?
-        current_date = datetime.now(timezone(timedelta(hours=2)))
+        current_date = datetime.now(pytz.timezone('Europe/Paris'))
         weekend_date = current_date + timedelta(
             days = 4 - current_date.weekday(),
             hours = 18 - current_date.hour,
