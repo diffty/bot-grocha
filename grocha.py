@@ -300,16 +300,28 @@ class GrochaGuild:
         weather = json_query(f"https://api.openweathermap.org/data/2.5/onecall?lat=48.85341&lon=2.3488&appid={config.OPENWEATHER_KEY}&units=metric&lang=fr")
         current_time = weather['current']['dt']
         current_date = datetime.fromtimestamp(current_time)
+        temp_type = 'feels_like'
 
-        def get_weather_emoji(id):
+        def is_day_time(dt):
+            return len([d for d in weather['daily'] if d['sunrise'] < dt and dt < d['sunset']]) > 0
+        def get_night_sky_emoji(dt):
+            for d in [d for d in weather['daily'] if d['moonrise'] < dt and dt < d['moonset']]:
+                phase = round(d["moon_phase"] * 4)
+                if phase == 1: return ":first_quarter_moon:"
+                elif phase == 2: return ":full_moon:"
+                elif phase == 3: return ":last_quarter_moon:"
+                else: return ":new_moon:"
+            return ":night_with_stars:" # No moon in the sky
+        def get_weather_emoji(dt, id):
+            day_time = is_day_time(dt)
             weather_emoji = [
                 (200, ":thunder_cloud_rain:"),
                 (300, ":cloud_rain:"),
                 (600, ":cloud_snow:"),
-                (800, ":sunny:"),
-                (801, ":white_sun_small_cloud:"),
-                (802, ":white_sun_cloud:"),
-                (803, ":white_sun_cloud:"),
+                (800, ":sunny:" if day_time else get_night_sky_emoji(dt)),
+                (801, ":white_sun_small_cloud:" if day_time else ":cloud:"),
+                (802, ":white_sun_cloud:" if day_time else ":cloud:"),
+                (803, ":white_sun_cloud:" if day_time else ":cloud:"),
                 (804, ":cloud:"),
             ]
             weather_emoji.reverse()
@@ -320,11 +332,11 @@ class GrochaGuild:
 
         def get_temp(temp_block):
             if type(temp_block) == dict:
-                return f"{round(temp_block['min'])}-{round(temp_block['max'])}°C".ljust(7)
+                return f"{round(min(temp_block.values()))}-{round(max(temp_block.values()))}°C".ljust(7)
             else:
                 return f"{format(temp_block, '.1f')}°C".ljust(6)
         def get_weather_desc(weather_block):
-            return f"{get_weather_emoji(weather_block['weather'][0]['id'])}`{get_temp(weather_block['temp'])}`"
+            return f"{get_weather_emoji(weather_block['dt'], weather_block['weather'][0]['id'])}`{get_temp(weather_block[temp_type])}`"
 
         response = f"MAOU-téo:"
         response += f"\nEn ce moment ({current_date}): {get_weather_desc(weather['current'])}"
