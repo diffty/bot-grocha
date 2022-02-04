@@ -9,7 +9,7 @@ import time
 import traceback
 from datetime import datetime, timedelta, timezone
 import unicodedata
-from urllib import request
+from urllib import parse, request
 
 import discord
 import pytz
@@ -297,8 +297,23 @@ class GrochaGuild:
         self.save_memory()
 
     async def on_message_meteo(self, message, message_split):
-        # TODO: allow different places (currently only Paris) but no idea how to make that simple and systemic
-        weather = json_query(f"https://api.openweathermap.org/data/2.5/onecall?lat=48.85341&lon=2.3488&appid={config.OPENWEATHER_KEY}&units=metric&lang=fr")
+        # Look for city in message
+        city_regex = "à (\\w+)"
+        city_match = re.search(city_regex, message.content)
+        if city_match:
+            geo = json_query(f"https://api.openweathermap.org/geo/1.0/direct?q={parse.quote_plus(city_match.group(1))}&limit=1&appid={config.OPENWEATHER_KEY}")
+            if geo:
+                lat = geo[0]['lat']
+                lon = geo[0]['lon']
+                city_name = geo[0]['local_names']['fr'] if 'local_names' in geo[0] else geo[0]['name']
+            else:
+                return await message.reply(f":disappointed: Je ne connais pas de ville nommée {city_match.group(1)}")
+        else: # Default to Paris
+            lat = 48.85341
+            lon = 2.3488
+            city_name = 'Paris'
+
+        weather = json_query(f"https://api.openweathermap.org/data/2.5/onecall?lat={lat}&lon={lon}&units=metric&lang=fr&appid={config.OPENWEATHER_KEY}")
         temp_type = 'feels_like'
 
         def get_datetime(dt):
@@ -343,7 +358,7 @@ class GrochaGuild:
         current_date = get_datetime(current_time)
 
         response = f"MAOU-téo:"
-        response += f"\nEn ce moment ({current_date}): {get_weather_desc(weather['current'])}"
+        response += f"\nEn ce moment à {city_name} ({current_date}) : {get_weather_desc(weather['current'])}"
 
         # Rain in the next hour
         active_minutely = list(filter(lambda m: m['precipitation'] > 0, weather['minutely']))
