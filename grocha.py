@@ -298,10 +298,13 @@ class GrochaGuild:
 
     async def on_message_meteo(self, message, message_split):
         # Look for city in message
-        city_regex = "à (\\w+)"
+        city_regex = "à ([\\w-]+(,\\s*[\\w-]+)?)"
         city_match = re.search(city_regex, message.content)
         if city_match:
-            geo = json_query(f"https://api.openweathermap.org/geo/1.0/direct?q={parse.quote_plus(city_match.group(1))}&limit=1&appid={config.OPENWEATHER_KEY}")
+            query = city_match.group(1)
+            if query.count(",") == 1:
+                query += ",Placeholder" # Needed for state hint to take effect
+            geo = json_query(f"https://api.openweathermap.org/geo/1.0/direct?q={parse.quote_plus(query)}&limit=1&appid={config.OPENWEATHER_KEY}")
             if geo:
                 geo = geo[0]
                 lat = geo['lat']
