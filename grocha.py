@@ -237,7 +237,7 @@ class GrochaGuild:
 
             await response.edit(content = sorted_emojis[:2000])
 
-        if "here" in message_split:
+        if "ici" in message_split or "here" in message_split:
             channels = [message.channel]
         elif len(message.channel_mentions) > 0:
             channels = message.channel_mentions
