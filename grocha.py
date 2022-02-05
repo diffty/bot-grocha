@@ -323,6 +323,11 @@ class GrochaGuild:
         weather = json_query(f"https://api.openweathermap.org/data/2.5/onecall?lat={lat}&lon={lon}&units=metric&lang=fr&appid={config.OPENWEATHER_KEY}")
         temp_type = 'feels_like'
 
+        if re.search("ressenti", message.content):
+            temp_type = 'feels_like'
+        elif re.search("exact", message.content):
+            temp_type = 'temp'
+
         def get_datetime(dt):
             return datetime.fromtimestamp(dt, timezone(timedelta(seconds=weather['timezone_offset'])))
         def is_day_time(dt):
