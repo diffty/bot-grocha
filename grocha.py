@@ -355,9 +355,9 @@ class GrochaGuild:
 
         def get_temp(temp_block):
             if type(temp_block) == dict:
-                return f"{round(min(temp_block.values()))}-{round(max(temp_block.values()))}°C".ljust(7)
+                return f"{round(min(temp_block.values()))}°/{round(max(temp_block.values()))}°".rjust(6)
             else:
-                return f"{format(temp_block, '.1f')}°C".ljust(6)
+                return f"{format(temp_block, '.1f')}°".rjust(6)
         def get_weather_desc(weather_block):
             return f"{get_weather_emoji(weather_block['dt'], weather_block['weather'][0]['id'])}`{get_temp(weather_block[temp_type])}`"
 
@@ -387,7 +387,7 @@ class GrochaGuild:
             date = get_datetime(weather_block['dt'])
             return f"`{format(date.hour, '0>2')}h:`{get_weather_desc(weather_block)}"
         for hour in range(0, min(16, len(weather['hourly'])), 4):
-            response += "\n" + " - ".join([get_weather_for_hour(h) for h in range(hour, hour + 4)])
+            response += "\n" + " ".join([get_weather_for_hour(h) for h in range(hour, hour + 4)])
 
         # Weather per day
         response += "\n"
@@ -396,7 +396,7 @@ class GrochaGuild:
             weather_block = weather['daily'][day]
             date = get_datetime(weather_block['dt'])
             return f"`{day_name[date.weekday()]}:`{get_weather_desc(weather_block)}"
-        response += "\n" + " - ".join([get_weather_for_day(day) for day in range(min(6, len(weather['daily'])))])
+        response += "\n" + " ".join([get_weather_for_day(day) for day in range(min(6, len(weather['daily'])))])
 
         await message.reply(response)
 
