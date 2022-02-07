@@ -158,7 +158,7 @@ class GrochaGuild:
         message_is_replying_to_bot = message.reference and message.reference.resolved and message.reference.resolved.author.id == self.user.id
 
         try:
-            message_split = remove_accents(message.content).split()
+            message_split = remove_accents(message.content).lower().split()
             if (self.user.mentioned_in(message) # Command mentioning the bot?
             and not message.mention_everyone # No it's mentioning everyone
             and not message_is_replying_to_bot): # No it's just replying
