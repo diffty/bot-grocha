@@ -58,11 +58,7 @@ class GrochaGuild:
         if not "autoreact" in self.memory:
             self.memory["autoreact"] = {}
 
-        # Clean obsolete autoreact emojis
-        for word in self.memory["autoreact"]:
-            for emoji in self.memory["autoreact"][word].copy():
-                if not self.is_emoji_string(emoji):
-                    self.memory["autoreact"][word].pop(emoji, None)
+        self.clean()
 
     def get_channel_by_name(self, channel_name):
         return discord.utils.get(self.server.channels, name = channel_name)
@@ -97,6 +93,15 @@ class GrochaGuild:
     def save_memory(self):
         with open(self.memory_file_name, "w") as memory_file:
             json.dump(self.memory, memory_file)
+
+    def clean(self):
+         # Clean obsolete autoreact words and emojis
+        for word in self.memory["autoreact"].copy():
+            for emoji in self.memory["autoreact"][word].copy():
+                if not self.is_emoji_string(emoji):
+                    self.memory["autoreact"][word].pop(emoji, None)
+            if len(self.memory["autoreact"][word]) == 0:
+                self.memory["autoreact"].pop(word, None)
 
     async def on_ready(self):
         print(f"Connected on Discord server {self.server}")
@@ -572,6 +577,10 @@ C'est à cette fin que des communistes de diverses nationalités se sont réunis
     async def on_message_restart(self, message, message_split):
         await message.reply(f'MAOU~ _(takin a short nap bruh)_')
         restart_results = subprocess.run(['systemctl', '--user', 'restart', 'bot-grocha'], capture_output=True, text=True).stderr.strip()
+
+    async def on_message_clean(self, message, message_split):
+        await message.reply(f"{self.emoji_to_string('lick')} _(auto-nettoyage)_")
+        self.clean()
 
 
 class GrochaBot(discord.Client):
