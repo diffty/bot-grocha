@@ -200,6 +200,19 @@ class GrochaGuild:
         exception_str = "\n".join(traceback.format_exception(e, value=e, tb=tb))
         await self.chan_debug.send(f'_Le bobo de Grocha :_\n```{exception_str}```')
 
+    async def reply_large(self, message, reply_contents):
+        reply_lines = reply_contents.split("\n")
+        reply_body = ""
+        for reply_line in reply_lines:
+            new_reply_body = f"{reply_body}{reply_line}\n"
+            if len(new_reply_body) > 2000:
+                await message.reply(reply_body)
+                reply_body = f"{reply_line}\n"
+            else:
+                reply_body = new_reply_body
+        if len(reply_body) > 0:
+            await message.reply(reply_body)
+
     async def on_message_kick(self, message, message_split):
         members = list(filter(lambda u: u != self.user, message.mentions))
         if members:
@@ -292,7 +305,7 @@ class GrochaGuild:
                 word_emojis = self.memory["autoreact"][word]
                 word_emojis = word_emojis.keys()
                 autoreact_digest += f"`{word}` → {''.join([e for e in word_emojis])}\n"
-            await message.reply(autoreact_digest)
+            await self.reply_large(message, autoreact_digest)
 
         for word in words:
             if not word in self.memory["autoreact"]:
