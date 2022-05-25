@@ -286,6 +286,14 @@ class GrochaGuild:
         emojis = list(filter(lambda w: self.is_emoji_string(w), message_split))
         is_removing = "remove" in message_split
 
+        if len(words) == len(emojis) == 0:
+            autoreact_digest = f"MAOW-toreacts :\n"
+            for word in self.memory["autoreact"]:
+                word_emojis = self.memory["autoreact"][word]
+                word_emojis = word_emojis.keys()
+                autoreact_digest += f"`{word}` → {''.join([e for e in word_emojis])}\n"
+            await message.reply(autoreact_digest)
+
         for word in words:
             if not word in self.memory["autoreact"]:
                 self.memory["autoreact"][word] = {}
