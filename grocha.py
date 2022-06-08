@@ -406,8 +406,8 @@ class GrochaGuild:
                 response += f"\nPluie dans {minutes_to_rain} minutes :umbrella:"
             else:
                 inactive_minutely = list(filter(lambda m: m['precipitation'] == 0, weather['minutely']))
-                minutes_to_clear = round((inactive_minutely[0]['dt'] - current_time) / 60)
                 if len(inactive_minutely) > 0:
+                    minutes_to_clear = round((inactive_minutely[0]['dt'] - current_time) / 60)
                     response += f"\nLa pluie s'arrêtera dans {minutes_to_clear} minutes :umbrella:"
                 else:
                     response += f"\nLa pluie s'arrêtera dans plus d'une heure :umbrella:"
